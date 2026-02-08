@@ -1,0 +1,83 @@
+# ===========================================
+# Common settings for all environments
+# ===========================================
+server:
+  port: 9083
+  servlet:
+    context-path: /
+
+spring:
+  mail:
+    default-encoding: UTF-8
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtp
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Eureka client
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:9999/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: info
+    org.springframework: info
+
+---
+# ===========================================
+# Development profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+---
+# ===========================================
+# Docker profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:9999/eureka
+
+---
+# ===========================================
+# Production profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: warn

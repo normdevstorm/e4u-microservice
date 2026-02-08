@@ -1,0 +1,41 @@
+# Build artifacts
+**/build/
+**/target/
+
+# IDE
+**/.idea/
+**/.vscode/
+**/*.iml
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Documentation
+*.md
+LICENSE
+
+# Docker
+**/Dockerfile
+docker-compose*.yml
+docker/
+
+# Test files
+**/src/test/
+
+# Logs
+*.log
+**/logs/
+
+# Environment files
+**/.env
+**/.env.*
+
+# OS files
+.DS_Store
+Thumbs.db

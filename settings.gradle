@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        maven { url 'https://repo.spring.io/milestone' }
+        maven { url 'https://repo.spring.io/snapshot' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'rental-microservice'
+
+include 'gatewayservice'
+include 'accountservice'
+include 'authenticationservice'
+include 'itemservice'
+include 'configservice'
+include 'discoveryservice'
+include 'notificationservice'
+include 'statisticservice'
+include 'monitoradmin'
+include 'paymentservice'

@@ -1,0 +1,47 @@
+# Docker Compose for local development - Only infrastructure services
+# Use this when you want to run microservices from IDE but need PostgreSQL
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: rental-postgres
+    environment:
+      POSTGRES_USER: nam
+      POSTGRES_PASSWORD: nam123
+      POSTGRES_MULTIPLE_DATABASES: rental_auth,rental_item,springcloud,springcloudreport
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+    ports:
+      - "5432:5432"
+    networks:
+      - rental-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nam"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin - PostgreSQL Web UI (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: rental-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@rental.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    networks:
+      - rental-network
+    depends_on:
+      - postgres
+
+networks:
+  rental-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,139 @@
+# ===========================================
+# Common settings for all environments
+# ===========================================
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: auth-service
+          uri: lb://authentication-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/accounts/**
+          filters:
+            - StripPrefix=1
+        - id: item-service
+          uri: lb://item-service
+          predicates:
+            - Path=/api/items/**
+          filters:
+            - StripPrefix=1
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - StripPrefix=1
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=1
+        - id: statistic-service
+          uri: lb://statistic-service
+          predicates:
+            - Path=/api/statistics/**
+          filters:
+            - StripPrefix=1
+        # OpenAPI routes for Swagger aggregation
+        - id: auth-api-docs
+          uri: lb://authentication-service
+          predicates:
+            - Path=/v3/api-docs/auth
+          filters:
+            - RewritePath=/v3/api-docs/auth, /v3/api-docs
+        - id: item-api-docs
+          uri: lb://item-service
+          predicates:
+            - Path=/v3/api-docs/item
+          filters:
+            - RewritePath=/v3/api-docs/item, /v3/api-docs
+
+# Swagger UI aggregation
+springdoc:
+  swagger-ui:
+    urls:
+      - url: /v3/api-docs
+        name: gateway-service
+      - url: /v3/api-docs/auth
+        name: authentication-service
+      - url: /v3/api-docs/item
+        name: item-service
+
+# Eureka client
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:9999/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: info
+    org.springframework.cloud.gateway: info
+
+---
+# ===========================================
+# Development profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    org.springframework.cloud.gateway: debug
+
+---
+# ===========================================
+# Docker profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:9999/eureka
+
+---
+# ===========================================
+# Production profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: warn
+    org.springframework.cloud.gateway: warn
