@@ -1,0 +1,11 @@
+databaseChangeLog:
+  # Schema initialization (run init.sql manually or via Hibernate ddl-auto for first setup)
+  # The init.sql contains CREATE TABLE statements for reference
+  
+  # Test data changelog - January 21, 2026
+  # - include:
+  #     file: db/changelog/init.sql
+      # relativeToChangelogFile: true
+  - include:
+      file: db/changelog/db.changelog-210126.sql
+      # relativeToChangelogFile: true
