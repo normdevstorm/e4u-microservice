@@ -1,0 +1,13 @@
+databaseChangeLog:
+  # ============================================
+  # Curriculum Service - Database Migration
+  # Fresh start with UUID primary keys
+  # ============================================
+  
+  # 1. Schema initialization - creates all tables with UUID primary keys
+  - include:
+      file: db/changelog/db.changelog-schema.sql
+
+  # 2. Test/Mock data - populates tables with sample data
+  - include:
+      file: db/changelog/db.changelog-data.sql

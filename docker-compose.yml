@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_USER: nam
       POSTGRES_PASSWORD: nam123
-      POSTGRES_MULTIPLE_DATABASES: rental_auth,rental_account,rental_item,rental_statistic,rental_payment
+      POSTGRES_MULTIPLE_DATABASES: rental_auth,rental_account,rental_item,rental_statistic,rental_payment,rental_curriculum,rental_lesson
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
@@ -22,6 +22,23 @@ services:
       - rental-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nam"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (for curriculum-service and lesson-service)
+  redis:
+    image: redis:7-alpine
+    container_name: rental-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - rental-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -231,6 +248,52 @@ services:
     networks:
       - rental-network
 
+  # Curriculum Service
+  curriculum-service:
+    build:
+      context: .
+      dockerfile: curriculum-service/Dockerfile
+    container_name: rental-curriculum-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - rental-network
+
+  # Lesson Service
+  lesson-service:
+    build:
+      context: .
+      dockerfile: lesson-service/Dockerfile
+    container_name: rental-lesson-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - rental-network
+
   # ===========================================
   # MONITORING & ADMIN
   # ===========================================
@@ -264,3 +327,4 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:

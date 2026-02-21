@@ -48,6 +48,18 @@ spring:
             - Path=/api/statistics/**
           filters:
             - StripPrefix=1
+        - id: curriculum-service
+          uri: lb://curriculum-service
+          predicates:
+            - Path=/api/curriculums/**
+          filters:
+            - StripPrefix=1
+        - id: lesson-service
+          uri: lb://lesson-service
+          predicates:
+            - Path=/api/lessons/**
+          filters:
+            - StripPrefix=1
         # OpenAPI routes for Swagger aggregation
         - id: auth-api-docs
           uri: lb://authentication-service
@@ -61,6 +73,18 @@ spring:
             - Path=/v3/api-docs/item
           filters:
             - RewritePath=/v3/api-docs/item, /v3/api-docs
+        - id: curriculum-api-docs
+          uri: lb://curriculum-service
+          predicates:
+            - Path=/v3/api-docs/curriculum
+          filters:
+            - RewritePath=/v3/api-docs/curriculum, /api/v3/api-docs
+        - id: lesson-api-docs
+          uri: lb://lesson-service
+          predicates:
+            - Path=/v3/api-docs/lesson
+          filters:
+            - RewritePath=/v3/api-docs/lesson, /api/v3/api-docs
 
 # Swagger UI aggregation
 springdoc:
@@ -72,6 +96,10 @@ springdoc:
         name: authentication-service
       - url: /v3/api-docs/item
         name: item-service
+      - url: /v3/api-docs/curriculum
+        name: curriculum-service
+      - url: /v3/api-docs/lesson
+        name: lesson-service
 
 # Eureka client
 eureka:

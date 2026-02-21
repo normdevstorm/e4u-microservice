@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'rental-microservice'
+rootProject.name = 'e4u-microservice'
 
 include 'gatewayservice'
 include 'accountservice'
@@ -19,3 +19,5 @@ include 'notificationservice'
 include 'statisticservice'
 include 'monitoradmin'
 include 'paymentservice'
+include 'lesson-service'
+include 'curriculum-service'
