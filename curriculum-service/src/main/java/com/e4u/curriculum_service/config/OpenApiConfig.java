@@ -17,11 +17,8 @@ public class OpenApiConfig {
         @Value("${spring.application.name:Curriculum Service}")
         private String applicationName;
 
-        @Value("${server.port:8080}")
-        private String serverPort;
-
-        @Value("${servlet.path:/api}")
-        private String servletPath;
+        @Value("${api.server.url}")
+        private String serverUrl;
 
         @Bean
         public OpenAPI customOpenAPI() {
@@ -39,10 +36,7 @@ public class OpenApiConfig {
                                                                 .url("https://www.apache.org/licenses/LICENSE-2.0")))
                                 .servers(List.of(
                                                 new Server()
-                                                                .url("http://localhost:" + serverPort + servletPath)
-                                                                .description("Local Development Server"),
-                                                new Server()
-                                                                .url("https://api.e4u.com/curriculum-service")
-                                                                .description("Production Server")));
+                                                                .url(serverUrl)
+                                                                .description("Local Development Server")));
         }
 }

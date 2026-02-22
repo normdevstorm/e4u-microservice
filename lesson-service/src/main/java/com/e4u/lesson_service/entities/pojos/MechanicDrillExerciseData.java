@@ -13,7 +13,7 @@ import java.util.List;
 public class MechanicDrillExerciseData extends ExerciseData {
 
     private String sentenceTemplate;
-    private String correctWord;
+    private String correctAnswer;
     private List<String> distractors;
     private String hint;
     private Boolean isAudioSupported;
