@@ -62,7 +62,10 @@ public class LessonExercise extends BaseEntity {
         TARGET_WORD_INTEGRATION(Constant.TARGET_WORD_INTEGRATION_IDENTIFIER),
         SENTENCE_BUILDING(Constant.SENTENCE_BUILDING_IDENTIFIER),
         ASSISTED_COMPOSITION(Constant.ASSISTED_COMPOSITION_IDENTIFIER),
-        CLOZE_WITH_AUDIO(Constant.CLOZE_WITH_AUDIO_IDENTIFIER);
+        CLOZE_WITH_AUDIO(Constant.CLOZE_WITH_AUDIO_IDENTIFIER),
+        // Legacy enum values for backward compatibility with existing database records
+        MICRO_TASK_OUTPUT(Constant.MICRO_TASK_OUTPUT_IDENTIFIER),
+        PARTIAL_OUTPUT(Constant.PARTIAL_OUTPUT_IDENTIFIER);
 
         private final String subtypeIdentifier;
 
