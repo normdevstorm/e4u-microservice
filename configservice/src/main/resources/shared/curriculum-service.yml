@@ -3,8 +3,8 @@
 # ===========================================
 server:
   port: 8085
-  servlet:
-    context-path: /api
+  # servlet:
+  #   context-path: /api
 
 spring:
   jpa:
@@ -45,7 +45,7 @@ client:
   user-service:
     url: ${USER_SERVICE_URL:http://localhost:8081/api}
   lesson-service:
-    url: ${LESSON_SERVICE_URL:http://localhost:8086/api}
+    url: ${LESSON_SERVICE_URL:http://localhost:8080/lesson}
 
 # Eureka client
 eureka:

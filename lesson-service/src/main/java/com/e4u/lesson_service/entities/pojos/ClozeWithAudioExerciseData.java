@@ -15,7 +15,7 @@ public class ClozeWithAudioExerciseData extends ExerciseData {
 
     private String sentenceTemplate;
 
-    private String correctWord;
+    private String correctAnswer;
 
     private String hint;
 

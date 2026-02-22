@@ -16,9 +16,10 @@ import java.util.UUID;
  * <p>
  * This client provides methods to interact with the lesson-service
  * microservice for lesson generation and management.
+ * Uses Eureka service discovery to locate the lesson-service instance.
  * </p>
  */
-@FeignClient(name = "lesson-service", url = "${client.lesson-service.url:http://localhost:8082}", fallback = LessonServiceClientFallback.class)
+@FeignClient(name = "lesson-service", fallback = LessonServiceClientFallback.class)
 public interface LessonServiceClient {
 
         /**
