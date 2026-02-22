@@ -9,3 +9,9 @@ databaseChangeLog:
   - include:
       file: db/changelog/db.changelog-210126.sql
       # relativeToChangelogFile: true
+  
+  # Exercise type rename migration - February 22, 2026
+  # PARTIAL_OUTPUT -> ASSISTED_COMPOSITION
+  # MICRO_TASK_OUTPUT -> TARGET_WORD_INTEGRATION
+  - include:
+      file: db/changelog/db.changelog-260222.sql
