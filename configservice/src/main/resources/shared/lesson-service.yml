@@ -15,6 +15,18 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 5000
+          curriculum-service:
+            connect-timeout: 5000
+            read-timeout: 10000
+      circuitbreaker:
+        enabled: false
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -57,6 +69,9 @@ logging:
     org.springframework: info
     org.hibernate.SQL: info
     com.e4u.lesson_service: info
+    # Feign debugging
+    org.springframework.cloud.openfeign: debug
+    feign: debug
 
 # API server URL for Swagger
 api:

@@ -33,9 +33,17 @@ public enum ErrorCode {
     LESSON_NOT_FOUND("ERR_4000", "Lesson not found", HttpStatus.NOT_FOUND),
     LESSON_EXERCISE_NOT_FOUND("ERR_4001", "Lesson exercise not found", HttpStatus.NOT_FOUND),
 
+    // Unit errors (4xxx)
+    UNIT_NOT_FOUND("ERR_4100", "Unit not found", HttpStatus.NOT_FOUND),
+    USER_UNIT_STATE_NOT_FOUND("ERR_4101", "User unit state not found", HttpStatus.NOT_FOUND),
+
     // Data integrity errors (5xxx)
     DATA_INTEGRITY_VIOLATION("ERR_5000", "Data integrity violation", HttpStatus.CONFLICT),
-    OPTIMISTIC_LOCK_FAILURE("ERR_5001", "Resource was modified by another user", HttpStatus.CONFLICT);
+    OPTIMISTIC_LOCK_FAILURE("ERR_5001", "Resource was modified by another user", HttpStatus.CONFLICT),
+
+    // External service errors (6xxx)
+    EXTERNAL_SERVICE_ERROR("ERR_6000", "External service error", HttpStatus.SERVICE_UNAVAILABLE),
+    CURRICULUM_SERVICE_ERROR("ERR_6001", "Curriculum service error", HttpStatus.SERVICE_UNAVAILABLE);
 
     private final String code;
     private final String message;
