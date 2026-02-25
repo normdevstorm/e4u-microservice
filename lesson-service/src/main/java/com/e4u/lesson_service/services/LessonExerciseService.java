@@ -1,8 +1,10 @@
 package com.e4u.lesson_service.services;
 
+import com.e4u.lesson_service.models.request.ExerciseSubmitRequest;
 import com.e4u.lesson_service.models.request.LessonExerciseCreateRequest;
 import com.e4u.lesson_service.models.request.LessonExerciseFilterRequest;
 import com.e4u.lesson_service.models.request.LessonExerciseUpdateRequest;
+import com.e4u.lesson_service.models.response.ExerciseSubmitResponse;
 import com.e4u.lesson_service.models.response.LessonExerciseDetailResponse;
 import com.e4u.lesson_service.models.response.LessonExerciseResponse;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,15 @@ import java.util.UUID;
  * Service interface for LessonExercise operations.
  */
 public interface LessonExerciseService {
+
+    /**
+     * Submit an answer for an exercise
+     * 
+     * @param exerciseId The exercise ID
+     * @param request    The submission request containing the answer
+     * @return Submission result with evaluation feedback
+     */
+    ExerciseSubmitResponse submitAnswer(UUID exerciseId, ExerciseSubmitRequest request);
 
     /**
      * Get all lesson exercises (paginated)

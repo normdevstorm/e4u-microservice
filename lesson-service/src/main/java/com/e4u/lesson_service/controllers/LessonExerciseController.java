@@ -1,9 +1,11 @@
 package com.e4u.lesson_service.controllers;
 
+import com.e4u.lesson_service.models.request.ExerciseSubmitRequest;
 import com.e4u.lesson_service.models.request.LessonExerciseCreateRequest;
 import com.e4u.lesson_service.models.request.LessonExerciseFilterRequest;
 import com.e4u.lesson_service.models.request.LessonExerciseUpdateRequest;
 import com.e4u.lesson_service.models.response.BaseResponse;
+import com.e4u.lesson_service.models.response.ExerciseSubmitResponse;
 import com.e4u.lesson_service.models.response.LessonExerciseDetailResponse;
 import com.e4u.lesson_service.models.response.LessonExerciseResponse;
 import com.e4u.lesson_service.models.response.PagedResponse;
@@ -194,6 +196,25 @@ public class LessonExerciseController {
                         @RequestBody LessonExerciseUpdateRequest request) {
                 LessonExerciseResponse result = service.partialUpdate(id, request);
                 return ResponseEntity.ok(BaseResponse.ok(result, "Lesson exercise updated successfully"));
+        }
+
+        // ==================== SUBMISSION Operations ====================
+
+        @PostMapping("/{id}/submit")
+        @Operation(summary = "Submit answer for exercise", description = "Submit a user's answer for an exercise. Returns evaluation result with feedback, "
+                        +
+                        "correctness, remaining attempts, and updated lesson/vocabulary progress.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Successfully evaluated and processed the answer"),
+                        @ApiResponse(responseCode = "404", description = "Lesson exercise not found"),
+                        @ApiResponse(responseCode = "400", description = "Invalid request data")
+        })
+        public ResponseEntity<BaseResponse<ExerciseSubmitResponse>> submitAnswer(
+                        @Parameter(name = "id", description = "Lesson exercise ID", example = "e1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c") @PathVariable("id") UUID id,
+                        @Valid @RequestBody ExerciseSubmitRequest request) {
+                ExerciseSubmitResponse result = service.submitAnswer(id, request);
+                String message = result.getIsCorrect() ? "Correct answer!" : "Incorrect answer";
+                return ResponseEntity.ok(BaseResponse.ok(result, message));
         }
 
         // ==================== DELETE Operations ====================

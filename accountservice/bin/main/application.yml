@@ -1,0 +1,11 @@
+# Bootstrap configuration only - all other settings come from Config Server
+spring:
+  application:
+    name: account-service
+  config:
+    import: configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  cloud:
+    config:
+      fail-fast: true
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}

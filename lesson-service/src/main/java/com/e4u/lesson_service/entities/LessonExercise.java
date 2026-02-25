@@ -54,6 +54,17 @@ public class LessonExercise extends BaseEntity {
     @Column(name = "time_spent_seconds")
     private Integer timeSpentSeconds;
 
+    @Column(name = "attempt_count")
+    @Builder.Default
+    private Integer attemptCount = 0;
+
+    @Column(name = "max_attempts")
+    @Builder.Default
+    private Integer maxAttempts = 3;
+
+    @Column(name = "score")
+    private Integer score;
+
     @Getter
     public enum ExerciseType {
         CONTEXTUAL_DISCOVERY(Constant.CONTEXTUAL_DISCOVERY_IDENTIFIER),

@@ -1,0 +1,112 @@
+# ===========================================
+# Common settings for all environments
+# ===========================================
+server:
+  port: 8084
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# PayPal Configuration - Use environment variables for secrets!
+paypal:
+  client-id: ${PAYPAL_CLIENT_ID:}
+  client-secret: ${PAYPAL_CLIENT_SECRET:}
+  mode: ${PAYPAL_MODE:sandbox}
+
+# Eureka client
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:9999/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Swagger/OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Logging
+logging:
+  level:
+    root: info
+    org.springframework: info
+
+---
+# ===========================================
+# Development profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rental_payment}
+    username: ${DB_USERNAME:nam}
+    password: ${DB_PASSWORD:nam123}
+  jpa:
+    show-sql: true
+
+---
+# ===========================================
+# Docker profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/rental_payment
+    username: ${DB_USERNAME:nam}
+    password: ${DB_PASSWORD:nam123}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:9999/eureka
+
+---
+# ===========================================
+# Production profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+paypal:
+  mode: live
+
+logging:
+  level:
+    root: warn

@@ -50,6 +50,13 @@ public class DynamicLesson extends BaseEntity {
     @Builder.Default
     private Integer completedItems = 0;
 
+    @Column(name = "correct_items")
+    @Builder.Default
+    private Integer correctItems = 0;
+
+    @Column(name = "last_activity_at")
+    private LocalDateTime lastActivityAt;
+
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<LessonItem> lessonItems = new HashSet<>();
@@ -75,12 +82,43 @@ public class DynamicLesson extends BaseEntity {
     public void startLesson() {
         this.status = LessonStatus.IN_PROGRESS;
         this.startedAt = LocalDateTime.now();
+        this.lastActivityAt = LocalDateTime.now();
     }
 
     public void completeLesson(Float accuracyRate) {
         this.status = LessonStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
+        this.lastActivityAt = LocalDateTime.now();
         this.accuracyRate = accuracyRate;
+    }
+
+    /**
+     * Update last activity timestamp and recalculate accuracy
+     */
+    public void recordActivity() {
+        this.lastActivityAt = LocalDateTime.now();
+    }
+
+    /**
+     * Increment completed items and optionally correct items
+     */
+    public void incrementProgress(boolean isCorrect) {
+        this.completedItems = (this.completedItems == null ? 0 : this.completedItems) + 1;
+        if (isCorrect) {
+            this.correctItems = (this.correctItems == null ? 0 : this.correctItems) + 1;
+        }
+        this.lastActivityAt = LocalDateTime.now();
+        recalculateAccuracyRate();
+    }
+
+    /**
+     * Recalculate accuracy rate based on correct/completed items
+     */
+    public void recalculateAccuracyRate() {
+        if (this.completedItems != null && this.completedItems > 0) {
+            int correct = this.correctItems == null ? 0 : this.correctItems;
+            this.accuracyRate = (float) correct / this.completedItems;
+        }
     }
 
     // TODO: add xp_earned field later on

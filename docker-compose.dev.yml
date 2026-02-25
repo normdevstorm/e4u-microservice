@@ -1,7 +1,7 @@
 # Docker Compose for local development - Only infrastructure services
 # Use this when you want to run microservices from IDE but need PostgreSQL
 
-version: '3.8'
+# version: '3.8'
 
 services:
   # PostgreSQL Database
