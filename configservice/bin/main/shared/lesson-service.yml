@@ -15,6 +15,18 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 5000
+          curriculum-service:
+            connect-timeout: 5000
+            read-timeout: 10000
+      circuitbreaker:
+        enabled: false
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -57,6 +69,9 @@ logging:
     org.springframework: info
     org.hibernate.SQL: info
     com.e4u.lesson_service: info
+    # Feign debugging
+    org.springframework.cloud.openfeign: debug
+    feign: debug
 
 # API server URL for Swagger
 api:
@@ -103,7 +118,7 @@ spring:
       on-profile: dev
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rental_lesson}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:e4u_lesson}
     username: ${DB_USERNAME:nam}
     password: ${DB_PASSWORD:nam123}
   jpa:
@@ -126,7 +141,7 @@ spring:
       on-profile: docker
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://postgres:5432/rental_lesson
+    url: jdbc:postgresql://postgres:5432/e4u_lesson
     username: ${DB_USERNAME:nam}
     password: ${DB_PASSWORD:nam123}
   data:
@@ -155,7 +170,7 @@ spring:
       on-profile: prod
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME:rental_lesson}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME:e4u_lesson}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:

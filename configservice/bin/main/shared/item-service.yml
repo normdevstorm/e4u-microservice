@@ -74,7 +74,7 @@ spring:
       on-profile: dev
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rental_item}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:e4u_item}
     username: ${DB_USERNAME:nam}
     password: ${DB_PASSWORD:nam123}
   jpa:
@@ -94,7 +94,7 @@ spring:
       on-profile: docker
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://postgres:5432/rental_item
+    url: jdbc:postgresql://postgres:5432/e4u_item
     username: ${DB_USERNAME:nam}
     password: ${DB_PASSWORD:nam123}
 

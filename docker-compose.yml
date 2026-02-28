@@ -8,18 +8,18 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: rental-postgres
+    container_name: e4u-postgres
     environment:
       POSTGRES_USER: nam
       POSTGRES_PASSWORD: nam123
-      POSTGRES_MULTIPLE_DATABASES: rental_auth,rental_account,rental_item,rental_statistic,rental_payment,rental_curriculum,rental_lesson
+      POSTGRES_MULTIPLE_DATABASES: e4u_auth,e4u_account,e4u_item,e4u_statistic,e4u_payment,e4u_curriculum,e4u_lesson
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
     ports:
       - "5432:5432"
     networks:
-      - rental-network
+      - e4u-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nam"]
       interval: 10s
@@ -29,14 +29,14 @@ services:
   # Redis Cache (for curriculum-service and lesson-service)
   redis:
     image: redis:7-alpine
-    container_name: rental-redis
+    container_name: e4u-redis
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     networks:
-      - rental-network
+      - e4u-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -52,13 +52,13 @@ services:
     build:
       context: .
       dockerfile: configservice/Dockerfile
-    container_name: rental-config-service
+    container_name: e4u-config-service
     ports:
       - "8888:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     networks:
-      - rental-network
+      - e4u-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
       interval: 10s
@@ -70,7 +70,7 @@ services:
     build:
       context: .
       dockerfile: discoveryservice/Dockerfile
-    container_name: rental-discovery-service
+    container_name: e4u-discovery-service
     ports:
       - "9999:9999"
     environment:
@@ -80,7 +80,7 @@ services:
       config-service:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9999/actuator/health"]
       interval: 10s
@@ -92,7 +92,7 @@ services:
     build:
       context: .
       dockerfile: gatewayservice/Dockerfile
-    container_name: rental-gateway-service
+    container_name: e4u-gateway-service
     ports:
       - "8080:8080"
     environment:
@@ -104,7 +104,7 @@ services:
       discovery-service:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
@@ -120,7 +120,7 @@ services:
     build:
       context: .
       dockerfile: authenticationservice/Dockerfile
-    container_name: rental-authentication-service
+    container_name: e4u-authentication-service
     ports:
       - "8082:8082"
     environment:
@@ -137,14 +137,14 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # Account Service
   account-service:
     build:
       context: .
       dockerfile: accountservice/Dockerfile
-    container_name: rental-account-service
+    container_name: e4u-account-service
     ports:
       - "9081:9081"
     environment:
@@ -158,14 +158,14 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # Item Service
   item-service:
     build:
       context: .
       dockerfile: itemservice/Dockerfile
-    container_name: rental-item-service
+    container_name: e4u-item-service
     ports:
       - "8083:8083"
     environment:
@@ -179,14 +179,14 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # Statistic Service
   statistic-service:
     build:
       context: .
       dockerfile: statisticservice/Dockerfile
-    container_name: rental-statistic-service
+    container_name: e4u-statistic-service
     ports:
       - "9082:9082"
     environment:
@@ -200,14 +200,14 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # Notification Service
   notification-service:
     build:
       context: .
       dockerfile: notificationservice/Dockerfile
-    container_name: rental-notification-service
+    container_name: e4u-notification-service
     ports:
       - "9083:9083"
     environment:
@@ -222,14 +222,14 @@ services:
       discovery-service:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # Payment Service
   payment-service:
     build:
       context: .
       dockerfile: paymentservice/Dockerfile
-    container_name: rental-payment-service
+    container_name: e4u-payment-service
     ports:
       - "8084:8084"
     environment:
@@ -246,14 +246,14 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # Curriculum Service
   curriculum-service:
     build:
       context: .
       dockerfile: curriculum-service/Dockerfile
-    container_name: rental-curriculum-service
+    container_name: e4u-curriculum-service
     ports:
       - "8085:8085"
     environment:
@@ -269,14 +269,14 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # Lesson Service
   lesson-service:
     build:
       context: .
       dockerfile: lesson-service/Dockerfile
-    container_name: rental-lesson-service
+    container_name: e4u-lesson-service
     ports:
       - "8086:8086"
     environment:
@@ -292,7 +292,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
   # ===========================================
   # MONITORING & ADMIN
@@ -303,7 +303,7 @@ services:
     build:
       context: .
       dockerfile: monitoradmin/Dockerfile
-    container_name: rental-monitor-admin
+    container_name: e4u-monitor-admin
     ports:
       - "9000:9000"
     environment:
@@ -315,14 +315,14 @@ services:
       discovery-service:
         condition: service_healthy
     networks:
-      - rental-network
+      - e4u-network
 
 # ===========================================
 # NETWORKS & VOLUMES
 # ===========================================
 
 networks:
-  rental-network:
+  e4u-network:
     driver: bridge
 
 volumes:
