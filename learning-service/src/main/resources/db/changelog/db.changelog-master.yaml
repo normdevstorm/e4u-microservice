@@ -1,0 +1,27 @@
+databaseChangeLog:
+  # Curriculum Schema - Tables for curriculum, units, goals, dictionaries
+  - include:
+      file: curriculum/db.changelog-schema.sql
+      relativeToChangelogFile: true
+  
+  # Curriculum Initial Data
+  - include:
+      file: curriculum/db.changelog-data.sql
+      relativeToChangelogFile: true
+  
+  # Lesson Schema - Tables for lessons, exercises, vocabulary instances
+  - include:
+      file: lesson/init.sql
+      relativeToChangelogFile: true
+  - include:
+      file: lesson/db.changelog-210126.sql
+      relativeToChangelogFile: true
+  
+  # Lesson Additional Changes
+  - include:
+      file: lesson/db.changelog-260222.sql
+      relativeToChangelogFile: true
+  
+  - include:
+      file: lesson/db.changelog-260223.sql
+      relativeToChangelogFile: true

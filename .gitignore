@@ -43,8 +43,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-!**/bin/generated-sources/
-!**/bin/generated-test-sources/
+**/bin/**
 
 # Environment
 .env

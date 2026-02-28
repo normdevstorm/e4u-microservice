@@ -19,5 +19,5 @@ include 'notificationservice'
 include 'statisticservice'
 include 'monitoradmin'
 include 'paymentservice'
-include 'lesson-service'
-include 'curriculum-service'
+include 'learning-service'
+// Merged: lesson-service and curriculum-service are now combined into learning-service

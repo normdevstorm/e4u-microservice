@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_USER: nam
       POSTGRES_PASSWORD: nam123
-      POSTGRES_MULTIPLE_DATABASES: e4u_auth,e4u_account,e4u_item,e4u_statistic,e4u_payment,e4u_curriculum,e4u_lesson
+      POSTGRES_MULTIPLE_DATABASES: e4u_auth,e4u_account,e4u_item,e4u_statistic,e4u_payment,e4u_learning
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
@@ -248,37 +248,14 @@ services:
     networks:
       - e4u-network
 
-  # Curriculum Service
-  curriculum-service:
+  # Learning Service (Combined Curriculum + Lesson)
+  learning-service:
     build:
       context: .
-      dockerfile: curriculum-service/Dockerfile
-    container_name: e4u-curriculum-service
+      dockerfile: learning-service/Dockerfile
+    container_name: e4u-learning-service
     ports:
       - "8085:8085"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - CONFIG_SERVER_URL=http://config-service:8888
-    depends_on:
-      config-service:
-        condition: service_healthy
-      discovery-service:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - e4u-network
-
-  # Lesson Service
-  lesson-service:
-    build:
-      context: .
-      dockerfile: lesson-service/Dockerfile
-    container_name: e4u-lesson-service
-    ports:
-      - "8086:8086"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - CONFIG_SERVER_URL=http://config-service:8888
