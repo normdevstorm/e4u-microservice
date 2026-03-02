@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation.strategies;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationStrategy;
@@ -18,8 +18,8 @@ public class ContextualDiscoveryEvaluator implements ExerciseEvaluationStrategy 
     private static final String ACKNOWLEDGED = "ACKNOWLEDGED";
 
     @Override
-    public LessonExercise.ExerciseType getExerciseType() {
-        return LessonExercise.ExerciseType.CONTEXTUAL_DISCOVERY;
+    public ExerciseTemplate.ExerciseType getExerciseType() {
+        return ExerciseTemplate.ExerciseType.CONTEXTUAL_DISCOVERY;
     }
 
     @Override

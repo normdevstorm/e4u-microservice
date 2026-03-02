@@ -31,9 +31,9 @@ public interface CurriculumUnitRepository
     // Find by curriculum ID with pagination
     Page<CurriculumUnit> findByCurriculum_IdAndDeletedFalse(UUID curriculumId, Pageable pageable);
 
-    // Find with base words
-    @Query("SELECT DISTINCT u FROM CurriculumUnit u LEFT JOIN FETCH u.baseWords bw LEFT JOIN FETCH bw.word WHERE u.id = :id AND u.deleted = false")
-    Optional<CurriculumUnit> findByIdWithBaseWords(@Param("id") UUID id);
+    // Find with word context templates
+    @Query("SELECT DISTINCT u FROM CurriculumUnit u LEFT JOIN FETCH u.wordContextTemplates wct LEFT JOIN FETCH wct.word WHERE u.id = :id AND u.deleted = false")
+    Optional<CurriculumUnit> findByIdWithWordContextTemplates(@Param("id") UUID id);
 
     // Find by proficiency level
     List<CurriculumUnit> findByRequiredProficiencyLevelAndDeletedFalse(String proficiencyLevel);

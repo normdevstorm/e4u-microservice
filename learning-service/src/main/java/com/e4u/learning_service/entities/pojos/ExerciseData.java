@@ -1,5 +1,6 @@
 package com.e4u.learning_service.entities.pojos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -22,5 +23,6 @@ import java.io.Serializable;
 })
 public abstract class ExerciseData implements Serializable {
         @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+        @JsonIgnore
         public abstract String getType();
 }

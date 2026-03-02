@@ -9,8 +9,12 @@ import java.util.UUID;
 
 @Repository
 public interface VocabAssetRepository extends JpaRepository<VocabAsset, UUID> {
-    List<VocabAsset> findByWordInstanceId(UUID wordInstanceId);
-    List<VocabAsset> findByWordInstanceIdOrderBySortOrderAsc(UUID wordInstanceId);
+    List<VocabAsset> findByWordContextTemplateId(UUID wordContextTemplateId);
+
+    List<VocabAsset> findByWordContextTemplateIdOrderBySortOrderAsc(UUID wordContextTemplateId);
+
     List<VocabAsset> findByAssetType(VocabAsset.AssetType assetType);
-    List<VocabAsset> findByWordInstanceIdAndAssetType(UUID wordInstanceId, VocabAsset.AssetType assetType);
+
+    List<VocabAsset> findByWordContextTemplateIdAndAssetType(UUID wordContextTemplateId,
+            VocabAsset.AssetType assetType);
 }

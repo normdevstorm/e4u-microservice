@@ -61,8 +61,14 @@ public class UserGoalServiceImpl implements UserGoalService {
     public List<UserGoalResponse> getByUser(UUID userId) {
         log.debug("Fetching goals for user: {}", userId);
         // TODO: Validate user exists via user-service when implemented
-        return repository.findByUserIdWithGoalDetails(userId)
-                .stream()
+        List<UserGoal> userGoals = repository.findByUserIdWithGoalDetails(userId);
+        log.info("Found {} user goals for userId: {}", userGoals.size(), userId);
+        for (UserGoal ug : userGoals) {
+            log.info("UserGoal: userId={}, goalId={}, deleted={}, goalDefinition={}",
+                    ug.getUserId(), ug.getGoalId(), ug.isDeleted(),
+                    ug.getGoalDefinition() != null ? ug.getGoalDefinition().getGoalName() : "NULL");
+        }
+        return userGoals.stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());
     }

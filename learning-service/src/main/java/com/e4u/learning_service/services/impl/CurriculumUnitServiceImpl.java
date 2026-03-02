@@ -5,21 +5,14 @@ import com.e4u.learning_service.common.exception.ResourceNotFoundException;
 import com.e4u.learning_service.dtos.request.CurriculumUnitCreateRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitFilterRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitUpdateRequest;
-import com.e4u.learning_service.dtos.request.UnitBaseWordsUpdateRequest;
 import com.e4u.learning_service.dtos.response.CurriculumUnitDetailResponse;
 import com.e4u.learning_service.dtos.response.CurriculumUnitResponse;
-import com.e4u.learning_service.dtos.response.UnitBaseWordResponse;
 import com.e4u.learning_service.entities.Curriculum;
 import com.e4u.learning_service.entities.CurriculumUnit;
-import com.e4u.learning_service.entities.GlobalDictionary;
-import com.e4u.learning_service.entities.UnitBaseWord;
 import com.e4u.learning_service.mapper.CurriculumUnitMapper;
 import com.e4u.learning_service.mapper.GlobalDictionaryMapper;
-import com.e4u.learning_service.mapper.UnitBaseWordMapper;
 import com.e4u.learning_service.repositories.CurriculumRepository;
 import com.e4u.learning_service.repositories.CurriculumUnitRepository;
-import com.e4u.learning_service.repositories.GlobalDictionaryRepository;
-import com.e4u.learning_service.repositories.UnitBaseWordRepository;
 import com.e4u.learning_service.repositories.specification.CurriculumUnitSpecification;
 import com.e4u.learning_service.services.CurriculumUnitService;
 import lombok.RequiredArgsConstructor;
@@ -47,11 +40,8 @@ public class CurriculumUnitServiceImpl implements CurriculumUnitService {
 
     private final CurriculumUnitRepository repository;
     private final CurriculumRepository curriculumRepository;
-    private final GlobalDictionaryRepository globalDictionaryRepository;
-    private final UnitBaseWordRepository unitBaseWordRepository;
     private final CurriculumUnitMapper mapper;
     private final GlobalDictionaryMapper globalDictionaryMapper;
-    private final UnitBaseWordMapper unitBaseWordMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -74,7 +64,7 @@ public class CurriculumUnitServiceImpl implements CurriculumUnitService {
     @Transactional(readOnly = true)
     public CurriculumUnitDetailResponse getByIdWithDetails(UUID unitId) {
         log.debug("Fetching curriculum unit with details by id: {}", unitId);
-        CurriculumUnit entity = repository.findByIdWithBaseWords(unitId)
+        CurriculumUnit entity = repository.findByIdWithWordContextTemplates(unitId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CURRICULUM_UNIT_NOT_FOUND,
                         "Curriculum unit not found with id: " + unitId));
         return mapper.toDetailResponse(entity, globalDictionaryMapper);
@@ -164,58 +154,12 @@ public class CurriculumUnitServiceImpl implements CurriculumUnitService {
 
     @Override
     @Transactional
-    public List<UnitBaseWordResponse> updateUnitBaseWords(UnitBaseWordsUpdateRequest request) {
-        log.info("Updating base words for unit: {}", request.getUnitId());
-
-        CurriculumUnit unit = findByIdOrThrow(request.getUnitId());
-
-        // Remove words
-        if (request.getRemoveWordIds() != null && !request.getRemoveWordIds().isEmpty()) {
-            for (UUID wordId : request.getRemoveWordIds()) {
-                unitBaseWordRepository.hardDeleteByUnitIdAndWordId(request.getUnitId(), wordId);
-            }
-            log.info("Removed {} words from unit {}", request.getRemoveWordIds().size(), request.getUnitId());
-        }
-
-        // Add words
-        if (request.getAddWordIds() != null && !request.getAddWordIds().isEmpty()) {
-            Integer maxOrder = unitBaseWordRepository.findMaxSequenceOrderByUnitId(request.getUnitId());
-            int order = maxOrder + 1;
-
-            for (UUID wordId : request.getAddWordIds()) {
-                if (!unitBaseWordRepository.existsByUnitIdAndWordIdAndDeletedFalse(request.getUnitId(), wordId)) {
-                    GlobalDictionary word = globalDictionaryRepository.findByIdAndDeletedFalse(wordId)
-                            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.GLOBAL_DICTIONARY_NOT_FOUND,
-                                    "Word not found with id: " + wordId));
-
-                    UnitBaseWord baseWord = UnitBaseWord.builder()
-                            .unitId(unit.getId())
-                            .wordId(word.getId())
-                            .unit(unit)
-                            .word(word)
-                            .sequenceOrder(order++)
-                            .build();
-                    unitBaseWordRepository.save(baseWord);
-                }
-            }
-            log.info("Added {} words to unit {}", request.getAddWordIds().size(), request.getUnitId());
-        }
-
-        // Return updated list
-        List<UnitBaseWord> baseWords = unitBaseWordRepository.findByUnitIdWithWordDetails(request.getUnitId());
-        return unitBaseWordMapper.toResponseList(baseWords);
-    }
-
-    @Override
-    @Transactional
     public void softDelete(UUID unitId) {
         log.info("Soft deleting curriculum unit: {}", unitId);
         if (!repository.existsById(unitId)) {
             throw new ResourceNotFoundException(ErrorCode.CURRICULUM_UNIT_NOT_FOUND,
                     "Curriculum unit not found with id: " + unitId);
         }
-        // Also soft delete associated base words
-        unitBaseWordRepository.softDeleteByUnitId(unitId, Instant.now());
         repository.softDeleteById(unitId, Instant.now());
         log.info("Soft deleted curriculum unit: {}", unitId);
     }

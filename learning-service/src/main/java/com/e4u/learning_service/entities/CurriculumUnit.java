@@ -57,21 +57,21 @@ public class CurriculumUnit extends BaseEntity {
 
     @OneToMany(mappedBy = "unit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private Set<UnitBaseWord> baseWords = new HashSet<>();
+    private Set<WordContextTemplate> wordContextTemplates = new HashSet<>();
 
     /**
-     * Add a base word to this unit
+     * Add a word context template to this unit
      */
-    public void addBaseWord(UnitBaseWord baseWord) {
-        baseWords.add(baseWord);
-        baseWord.setUnit(this);
+    public void addWordContextTemplate(WordContextTemplate wordContextTemplate) {
+        wordContextTemplates.add(wordContextTemplate);
+        wordContextTemplate.setUnit(this);
     }
 
     /**
-     * Remove a base word from this unit
+     * Remove a word context template from this unit
      */
-    public void removeBaseWord(UnitBaseWord baseWord) {
-        baseWords.remove(baseWord);
-        baseWord.setUnit(null);
+    public void removeWordContextTemplate(WordContextTemplate wordContextTemplate) {
+        wordContextTemplates.remove(wordContextTemplate);
+        wordContextTemplate.setUnit(null);
     }
 }

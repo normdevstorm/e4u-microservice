@@ -17,10 +17,10 @@ public class Constant {
             "/actuator/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/v1/**",
+//            "/v1/**",
             "/swagger-ui.html",
     };
 
-    public static final String SHOULD_NOT_FILTER_JWT_PATHS_REGEX = "^(/actuator.*|/v3/api-docs.*|/swagger-ui.*|/v1.*)$";
+    public static final String SHOULD_NOT_FILTER_JWT_PATHS_REGEX = "^(/actuator.*|/v3/api-docs.*|/swagger-ui.*)$";
 
 }

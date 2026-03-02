@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation.strategies;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.SentenceBuildingExerciseData;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
@@ -23,8 +23,8 @@ public class SentenceBuildingEvaluator implements ExerciseEvaluationStrategy {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public LessonExercise.ExerciseType getExerciseType() {
-        return LessonExercise.ExerciseType.SENTENCE_BUILDING;
+    public ExerciseTemplate.ExerciseType getExerciseType() {
+        return ExerciseTemplate.ExerciseType.SENTENCE_BUILDING;
     }
 
     @Override

@@ -24,27 +24,28 @@ public class SecurityUtil {
      * Get the current authenticated user's ID from SecurityContext.
      *
      * @return UUID of the current user
-     * @throws AppException if user is not authenticated or authentication is invalid
+     * @throws AppException if user is not authenticated or authentication is
+     *                      invalid
      */
     public static UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             log.error("No authenticated user found in SecurityContext");
             throw new AppException(ErrorCode.UNAUTHORIZED, "User not authenticated");
         }
 
         Object principal = authentication.getPrincipal();
-        
+
         if (!(principal instanceof UserModelFromJwtPayload)) {
-            log.error("Invalid principal type in SecurityContext: {}", 
-                principal != null ? principal.getClass().getName() : "null");
+            log.error("Invalid principal type in SecurityContext: {}",
+                    principal != null ? principal.getClass().getName() : "null");
             throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid authentication principal");
         }
 
         UserModelFromJwtPayload user = (UserModelFromJwtPayload) principal;
         UUID userId = user.getId();
-        
+
         if (userId == null) {
             log.error("User ID is null in authentication principal");
             throw new AppException(ErrorCode.UNAUTHORIZED, "User ID not found in authentication");
@@ -58,21 +59,22 @@ public class SecurityUtil {
      * Get the current authenticated user's model from SecurityContext.
      *
      * @return UserModelFromJwtPayload of the current user
-     * @throws AppException if user is not authenticated or authentication is invalid
+     * @throws AppException if user is not authenticated or authentication is
+     *                      invalid
      */
     public static UserModelFromJwtPayload getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             log.error("No authenticated user found in SecurityContext");
             throw new AppException(ErrorCode.UNAUTHORIZED, "User not authenticated");
         }
 
         Object principal = authentication.getPrincipal();
-        
+
         if (!(principal instanceof UserModelFromJwtPayload)) {
-            log.error("Invalid principal type in SecurityContext: {}", 
-                principal != null ? principal.getClass().getName() : "null");
+            log.error("Invalid principal type in SecurityContext: {}",
+                    principal != null ? principal.getClass().getName() : "null");
             throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid authentication principal");
         }
 
@@ -83,12 +85,13 @@ public class SecurityUtil {
      * Get the current authenticated user's username from SecurityContext.
      *
      * @return username of the current user
-     * @throws AppException if user is not authenticated or authentication is invalid
+     * @throws AppException if user is not authenticated or authentication is
+     *                      invalid
      */
     public static String getCurrentUsername() {
         UserModelFromJwtPayload user = getCurrentUser();
         String username = user.getUsername();
-        
+
         if (username == null || username.isEmpty()) {
             log.error("Username is null or empty in authentication principal");
             throw new AppException(ErrorCode.UNAUTHORIZED, "Username not found in authentication");
@@ -101,7 +104,8 @@ public class SecurityUtil {
      * Get the current authenticated user's role from SecurityContext.
      *
      * @return role of the current user
-     * @throws AppException if user is not authenticated or authentication is invalid
+     * @throws AppException if user is not authenticated or authentication is
+     *                      invalid
      */
     public static String getCurrentUserRole() {
         UserModelFromJwtPayload user = getCurrentUser();

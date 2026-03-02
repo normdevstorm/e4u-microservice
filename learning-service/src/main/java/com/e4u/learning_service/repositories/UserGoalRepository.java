@@ -53,7 +53,7 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, UserGoalId>,
     @Query("UPDATE UserGoal ug SET ug.isPrimary = false WHERE ug.userId = :userId AND ug.deleted = false")
     int clearPrimaryForUser(@Param("userId") UUID userId);
 
-    // Find with goal details
-    @Query("SELECT ug FROM UserGoal ug JOIN FETCH ug.goalDefinition WHERE ug.userId = :userId AND ug.deleted = false")
+    // Find with goal details (eagerly fetch goalDefinition)
+    @Query("SELECT ug FROM UserGoal ug JOIN FETCH ug.goalDefinition gd WHERE ug.userId = :userId AND ug.deleted = false AND gd.deleted = false")
     List<UserGoal> findByUserIdWithGoalDetails(@Param("userId") UUID userId);
 }

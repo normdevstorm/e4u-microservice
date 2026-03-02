@@ -71,7 +71,7 @@ public class UserGoalController {
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }
 
-        @GetMapping("/goal/{goalId}")
+        @GetMapping("/goal/{goalId}/users")
         @Operation(summary = "Get users by goal", description = "Retrieve all users with a specific goal")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Successfully retrieved users for goal")

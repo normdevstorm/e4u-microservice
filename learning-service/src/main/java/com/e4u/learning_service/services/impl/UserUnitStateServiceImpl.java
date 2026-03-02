@@ -34,7 +34,7 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
     private final CurriculumUnitRepository curriculumUnitRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<UserUnitStateResponse> getUnitsByCurriculumWithState(UUID curriculumId, UUID userId) {
         log.debug("Fetching units for curriculum: {} with state for user: {}", curriculumId, userId);
 
@@ -46,12 +46,37 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
             return Collections.emptyList();
         }
 
-        // 2. Fetch user states for this user
+        // 2. Fetch existing user states for this user
         List<UserUnitState> userStates = userUnitStateRepository.findByUserId(userId);
         Map<UUID, UserUnitState> statesByUnitId = userStates.stream()
                 .collect(Collectors.toMap(UserUnitState::getUnitId, Function.identity(), (a, b) -> a));
 
-        // 3. Combine unit info with user state
+        // 3. Initialize missing user unit state records for this curriculum
+        List<UserUnitState> missingStates = new ArrayList<>();
+        for (CurriculumUnit unit : units) {
+            if (!statesByUnitId.containsKey(unit.getId())) {
+            UserUnitState newState = UserUnitState.builder()
+                .userId(userId)
+                .unitId(unit.getId())
+                .status(UnitStatus.NOT_STARTED)
+                .currentPriorityScore(0)
+                .difficultyModifier(1.0f)
+                .isFastTracked(false)
+                .proficiencyScore(0.0f)
+                .build();
+            missingStates.add(newState);
+            }
+        }
+
+        if (!missingStates.isEmpty()) {
+            List<UserUnitState> savedStates = userUnitStateRepository.saveAll(missingStates);
+            savedStates.forEach(state -> statesByUnitId.put(state.getUnitId(), state));
+
+            log.info("Initialized {} missing UserUnitState records for user {} in curriculum {}",
+                savedStates.size(), userId, curriculumId);
+        }
+        
+        // 4. Combine unit info with user state
         return units.stream()
                 .map(unit -> buildResponse(unit, statesByUnitId.get(unit.getId())))
                 .sorted(Comparator.comparing(UserUnitStateResponse::getDefaultOrder,
@@ -180,7 +205,7 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
                 .baseKeywords(unit.getBaseKeywords())
                 .description(unit.getDescription())
                 .isActive(unit.getIsActive())
-                .wordCount(unit.getBaseWords() != null ? (long) unit.getBaseWords().size() : 0L);
+                .wordCount(unit.getWordContextTemplates() != null ? (long) unit.getWordContextTemplates().size() : 0L);
 
         // Add user state if available
         if (state != null) {
@@ -191,7 +216,7 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
                     .isFastTracked(state.getIsFastTracked())
                     .proficiencyScore(state.getProficiencyScore())
                     .difficultyModifier(state.getDifficultyModifier())
-                    .lessonCount(state.getLessons() != null ? state.getLessons().size() : 0)
+                    .lessonCount(state.getLessonSessions() != null ? state.getLessonSessions().size() : 0)
                     .lastInteractionAt(state.getLastInteractionAt())
                     .stateCreatedAt(state.getCreatedAt())
                     .stateUpdatedAt(state.getUpdatedAt());
@@ -216,7 +241,7 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
                 .isFastTracked(state.getIsFastTracked())
                 .proficiencyScore(state.getProficiencyScore())
                 .difficultyModifier(state.getDifficultyModifier())
-                .lessonCount(state.getLessons() != null ? state.getLessons().size() : 0)
+            .lessonCount(state.getLessonSessions() != null ? state.getLessonSessions().size() : 0)
                 .lastInteractionAt(state.getLastInteractionAt())
                 .stateCreatedAt(state.getCreatedAt())
                 .stateUpdatedAt(state.getUpdatedAt())

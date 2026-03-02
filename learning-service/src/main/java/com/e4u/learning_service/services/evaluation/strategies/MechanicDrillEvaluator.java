@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation.strategies;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.MechanicDrillExerciseData;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 public class MechanicDrillEvaluator implements ExerciseEvaluationStrategy {
 
     @Override
-    public LessonExercise.ExerciseType getExerciseType() {
-        return LessonExercise.ExerciseType.MECHANIC_DRILL;
+    public ExerciseTemplate.ExerciseType getExerciseType() {
+        return ExerciseTemplate.ExerciseType.MECHANIC_DRILL;
     }
 
     @Override

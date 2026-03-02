@@ -56,7 +56,7 @@ public class GlobalDictionary extends BaseEntity {
 
     @OneToMany(mappedBy = "word", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private Set<UnitBaseWord> unitBaseWords = new HashSet<>();
+    private Set<WordContextTemplate> wordContextTemplates = new HashSet<>();
 
     /**
      * Add a translation to this word

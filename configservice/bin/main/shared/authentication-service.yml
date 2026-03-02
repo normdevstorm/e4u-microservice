@@ -51,7 +51,7 @@ logging:
 # API server URL for Swagger
 api:
   server:
-    url: ${API_SERVER_URL:http://localhost:8080/auth}
+    url: ${API_SERVER_URL:http://localhost:8082}
 
 # Swagger/OpenAPI
 springdoc:

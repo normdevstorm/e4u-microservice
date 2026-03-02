@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation.strategies;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.AssistedCompositionExerciseData;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
@@ -17,8 +17,8 @@ import java.util.List;
 public class AssistedCompositionEvaluator implements ExerciseEvaluationStrategy {
 
     @Override
-    public LessonExercise.ExerciseType getExerciseType() {
-        return LessonExercise.ExerciseType.ASSISTED_COMPOSITION;
+    public ExerciseTemplate.ExerciseType getExerciseType() {
+        return ExerciseTemplate.ExerciseType.ASSISTED_COMPOSITION;
     }
 
     @Override

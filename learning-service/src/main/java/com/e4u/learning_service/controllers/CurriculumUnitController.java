@@ -3,12 +3,10 @@ package com.e4u.learning_service.controllers;
 import com.e4u.learning_service.dtos.request.CurriculumUnitCreateRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitFilterRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitUpdateRequest;
-import com.e4u.learning_service.dtos.request.UnitBaseWordsUpdateRequest;
 import com.e4u.learning_service.dtos.response.BaseResponse;
 import com.e4u.learning_service.dtos.response.CurriculumUnitDetailResponse;
 import com.e4u.learning_service.dtos.response.CurriculumUnitResponse;
 import com.e4u.learning_service.dtos.response.PagedResponse;
-import com.e4u.learning_service.dtos.response.UnitBaseWordResponse;
 import com.e4u.learning_service.services.CurriculumUnitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -134,19 +132,6 @@ public class CurriculumUnitController {
                         @RequestBody CurriculumUnitUpdateRequest request) {
                 CurriculumUnitResponse result = service.partialUpdate(unitId, request);
                 return ResponseEntity.ok(BaseResponse.ok(result, "Curriculum unit updated successfully"));
-        }
-
-        @PatchMapping("/base-words")
-        @Operation(summary = "Update unit base words", description = "Add or remove base words from a curriculum unit")
-        @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Unit base words updated successfully"),
-                        @ApiResponse(responseCode = "404", description = "Curriculum unit or word not found"),
-                        @ApiResponse(responseCode = "400", description = "Invalid request data")
-        })
-        public ResponseEntity<BaseResponse<List<UnitBaseWordResponse>>> updateUnitBaseWords(
-                        @Valid @RequestBody UnitBaseWordsUpdateRequest request) {
-                List<UnitBaseWordResponse> result = service.updateUnitBaseWords(request);
-                return ResponseEntity.ok(BaseResponse.ok(result, "Unit base words updated successfully"));
         }
 
         @DeleteMapping("/{unitId}")

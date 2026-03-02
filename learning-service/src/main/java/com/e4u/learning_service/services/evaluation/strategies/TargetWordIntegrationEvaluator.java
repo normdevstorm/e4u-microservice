@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation.strategies;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.TargetWordIntegrationExerciseData;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
@@ -22,8 +22,8 @@ import java.util.List;
 public class TargetWordIntegrationEvaluator implements ExerciseEvaluationStrategy {
 
     @Override
-    public LessonExercise.ExerciseType getExerciseType() {
-        return LessonExercise.ExerciseType.TARGET_WORD_INTEGRATION;
+    public ExerciseTemplate.ExerciseType getExerciseType() {
+        return ExerciseTemplate.ExerciseType.TARGET_WORD_INTEGRATION;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 
 /**
@@ -12,7 +12,7 @@ public interface ExerciseEvaluationStrategy {
     /**
      * Get the exercise type this strategy handles
      */
-    LessonExercise.ExerciseType getExerciseType();
+    ExerciseTemplate.ExerciseType getExerciseType();
 
     /**
      * Evaluate the user's answer against the exercise data

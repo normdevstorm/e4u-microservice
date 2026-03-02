@@ -16,8 +16,8 @@ public class VocabAsset extends BaseEntity {
     private UUID assetId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "word_id", nullable = false)
-    private UserVocabInstance wordInstance;
+    @JoinColumn(name = "word_context_template_id", nullable = false)
+    private WordContextTemplate wordContextTemplate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

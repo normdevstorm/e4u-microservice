@@ -29,12 +29,12 @@ public interface GlobalDictionaryMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "translations", ignore = true)
-    @Mapping(target = "unitBaseWords", ignore = true)
+    @Mapping(target = "wordContextTemplates", ignore = true)
     GlobalDictionary toEntity(GlobalDictionaryCreateRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "translations", ignore = true)
-    @Mapping(target = "unitBaseWords", ignore = true)
+    @Mapping(target = "wordContextTemplates", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void partialUpdate(@MappingTarget GlobalDictionary entity, GlobalDictionaryUpdateRequest request);

@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -21,25 +21,15 @@ import java.util.Map;
 public class ExerciseEvaluationService {
 
     private final List<ExerciseEvaluationStrategy> strategies;
-    private final Map<LessonExercise.ExerciseType, ExerciseEvaluationStrategy> strategyMap = new EnumMap<>(
-            LessonExercise.ExerciseType.class);
+    private final Map<ExerciseTemplate.ExerciseType, ExerciseEvaluationStrategy> strategyMap = new EnumMap<>(
+            ExerciseTemplate.ExerciseType.class);
 
     @PostConstruct
     public void init() {
         for (ExerciseEvaluationStrategy strategy : strategies) {
-            LessonExercise.ExerciseType type = strategy.getExerciseType();
+            ExerciseTemplate.ExerciseType type = strategy.getExerciseType();
             strategyMap.put(type, strategy);
             log.info("Registered evaluation strategy for exercise type: {}", type);
-        }
-
-        // Map legacy types to their new implementations
-        if (strategyMap.containsKey(LessonExercise.ExerciseType.TARGET_WORD_INTEGRATION)) {
-            strategyMap.put(LessonExercise.ExerciseType.MICRO_TASK_OUTPUT,
-                    strategyMap.get(LessonExercise.ExerciseType.TARGET_WORD_INTEGRATION));
-        }
-        if (strategyMap.containsKey(LessonExercise.ExerciseType.ASSISTED_COMPOSITION)) {
-            strategyMap.put(LessonExercise.ExerciseType.PARTIAL_OUTPUT,
-                    strategyMap.get(LessonExercise.ExerciseType.ASSISTED_COMPOSITION));
         }
 
         log.info("Exercise evaluation service initialized with {} strategies", strategyMap.size());
@@ -48,12 +38,13 @@ public class ExerciseEvaluationService {
     /**
      * Evaluate a user's answer for an exercise
      *
-     * @param exercise   The exercise being answered
-     * @param userAnswer The user's submitted answer
+     * @param exercise      The exercise being answered
+     * @param userAnswer    The user's submitted answer
+     * @param attemptNumber The current attempt number (1-based)
      * @return Evaluation result with correctness, score, and feedback
      */
-    public EvaluationResult evaluate(LessonExercise exercise, Object userAnswer) {
-        LessonExercise.ExerciseType exerciseType = exercise.getExerciseType();
+    public EvaluationResult evaluate(ExerciseTemplate exercise, Object userAnswer, int attemptNumber) {
+        ExerciseTemplate.ExerciseType exerciseType = exercise.getExerciseType();
         ExerciseEvaluationStrategy strategy = strategyMap.get(exerciseType);
 
         if (strategy == null) {
@@ -61,10 +52,7 @@ public class ExerciseEvaluationService {
             return createFallbackResult(exercise, userAnswer);
         }
 
-        int attemptNumber = (exercise.getAttemptCount() != null ? exercise.getAttemptCount() : 0) + 1;
-        int maxAttempts = exercise.getMaxAttempts() != null
-                ? exercise.getMaxAttempts()
-                : strategy.getDefaultMaxAttempts();
+        int maxAttempts = strategy.getDefaultMaxAttempts();
 
         ExerciseData exerciseData = exercise.getExerciseData();
 
@@ -82,7 +70,7 @@ public class ExerciseEvaluationService {
     /**
      * Get the default max attempts for an exercise type
      */
-    public int getDefaultMaxAttempts(LessonExercise.ExerciseType exerciseType) {
+    public int getDefaultMaxAttempts(ExerciseTemplate.ExerciseType exerciseType) {
         ExerciseEvaluationStrategy strategy = strategyMap.get(exerciseType);
         return strategy != null ? strategy.getDefaultMaxAttempts() : 3;
     }
@@ -90,11 +78,11 @@ public class ExerciseEvaluationService {
     /**
      * Check if an exercise type is supported
      */
-    public boolean isSupported(LessonExercise.ExerciseType exerciseType) {
+    public boolean isSupported(ExerciseTemplate.ExerciseType exerciseType) {
         return strategyMap.containsKey(exerciseType);
     }
 
-    private EvaluationResult createFallbackResult(LessonExercise exercise, Object userAnswer) {
+    private EvaluationResult createFallbackResult(ExerciseTemplate exercise, Object userAnswer) {
         // For unsupported types, mark as correct to avoid blocking progress
         return EvaluationResult.builder()
                 .correct(true)

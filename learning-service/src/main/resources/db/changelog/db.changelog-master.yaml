@@ -1,27 +1,25 @@
 databaseChangeLog:
-  # Curriculum Schema - Tables for curriculum, units, goals, dictionaries
+  # ============================================
+  # V1 Schema - Clean Migration (2026-03-01)
+  # ============================================
+  
+  # Step 1: Drop all existing tables
   - include:
-      file: curriculum/db.changelog-schema.sql
+      file: v1/db.changelog-001-drop-all.sql
       relativeToChangelogFile: true
   
-  # Curriculum Initial Data
+  # Step 2: Create all tables with new schema
   - include:
-      file: curriculum/db.changelog-data.sql
+      file: v1/db.changelog-002-ddl-init.sql
       relativeToChangelogFile: true
   
-  # Lesson Schema - Tables for lessons, exercises, vocabulary instances
+  # Step 3: Create indexes for performance
   - include:
-      file: lesson/init.sql
-      relativeToChangelogFile: true
-  - include:
-      file: lesson/db.changelog-210126.sql
+      file: v1/db.changelog-003-indexes.sql
       relativeToChangelogFile: true
   
-  # Lesson Additional Changes
+  # Step 4: Insert test data (only for test/dev contexts)
   - include:
-      file: lesson/db.changelog-260222.sql
+      file: v1/db.changelog-004-test-data.sql
       relativeToChangelogFile: true
-  
-  - include:
-      file: lesson/db.changelog-260223.sql
-      relativeToChangelogFile: true
+

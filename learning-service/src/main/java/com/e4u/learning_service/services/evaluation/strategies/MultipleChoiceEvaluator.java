@@ -1,6 +1,6 @@
 package com.e4u.learning_service.services.evaluation.strategies;
 
-import com.e4u.learning_service.entities.LessonExercise;
+import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.MultipleChoiceExerciseData;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
@@ -17,8 +17,8 @@ import java.util.List;
 public class MultipleChoiceEvaluator implements ExerciseEvaluationStrategy {
 
     @Override
-    public LessonExercise.ExerciseType getExerciseType() {
-        return LessonExercise.ExerciseType.MULTIPLE_CHOICE;
+    public ExerciseTemplate.ExerciseType getExerciseType() {
+        return ExerciseTemplate.ExerciseType.MULTIPLE_CHOICE;
     }
 
     @Override
