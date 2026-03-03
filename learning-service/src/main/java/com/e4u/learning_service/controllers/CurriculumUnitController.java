@@ -1,5 +1,6 @@
 package com.e4u.learning_service.controllers;
 
+import com.e4u.learning_service.common.utils.SecurityUtil;
 import com.e4u.learning_service.dtos.request.CurriculumUnitCreateRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitFilterRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitUpdateRequest;
@@ -7,6 +8,7 @@ import com.e4u.learning_service.dtos.response.BaseResponse;
 import com.e4u.learning_service.dtos.response.CurriculumUnitDetailResponse;
 import com.e4u.learning_service.dtos.response.CurriculumUnitResponse;
 import com.e4u.learning_service.dtos.response.PagedResponse;
+import com.e4u.learning_service.dtos.response.WordContextResponse;
 import com.e4u.learning_service.services.CurriculumUnitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -69,6 +71,27 @@ public class CurriculumUnitController {
         public ResponseEntity<BaseResponse<CurriculumUnitDetailResponse>> getByIdWithDetails(
                         @Parameter(description = "Unit ID") @PathVariable("unitId") UUID unitId) {
                 CurriculumUnitDetailResponse result = service.getByIdWithDetails(unitId);
+                return ResponseEntity.ok(BaseResponse.ok(result));
+        }
+
+        @GetMapping("/{unitId}/words")
+        @Operation(summary = "Get words for a unit", description = "Retrieve all word context templates for a specific unit")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Successfully retrieved words for unit"),
+                        @ApiResponse(responseCode = "404", description = "Curriculum unit not found")
+        })
+        public ResponseEntity<BaseResponse<List<WordContextResponse>>> getWordsByUnitId(
+                        @Parameter(description = "Unit ID") @PathVariable("unitId") UUID unitId
+        // @Parameter(description = "User ID (optional, for user-specific contexts)")
+        // @RequestParam(required = false) UUID userId
+        ) {
+                List<WordContextResponse> result;
+                // if (userId != null) {
+                result = service.getWordsByUnitId(unitId);
+                // } else {
+                UUID currentUser = SecurityUtil.getCurrentUserId();
+                result.addAll(service.getWordsByUnitIdForUser(unitId, currentUser));
+                // }
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }
 

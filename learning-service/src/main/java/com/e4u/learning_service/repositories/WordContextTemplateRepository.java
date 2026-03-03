@@ -21,12 +21,11 @@ public interface WordContextTemplateRepository extends JpaRepository<WordContext
      * Find all contexts for a specific word (shared + user-specific)
      */
     @Query("SELECT wct FROM WordContextTemplate wct " +
-           "WHERE wct.word.id = :wordId " +
-           "AND (wct.createdForUserId IS NULL OR wct.createdForUserId = :userId)")
+            "WHERE wct.word.id = :wordId " +
+            "AND (wct.createdForUserId IS NULL OR wct.createdForUserId = :userId)")
     List<WordContextTemplate> findByWordIdForUser(
-        @Param("wordId") UUID wordId, 
-        @Param("userId") UUID userId
-    );
+            @Param("wordId") UUID wordId,
+            @Param("userId") UUID userId);
 
     /**
      * Find only shared/system contexts for a word
@@ -42,8 +41,8 @@ public interface WordContextTemplateRepository extends JpaRepository<WordContext
      * Find a context by ID with word eagerly loaded
      */
     @Query("SELECT wct FROM WordContextTemplate wct " +
-           "LEFT JOIN FETCH wct.word " +
-           "WHERE wct.id = :id")
+            "LEFT JOIN FETCH wct.word " +
+            "WHERE wct.id = :id")
     Optional<WordContextTemplate> findByIdWithWord(@Param("id") UUID id);
 
     /**
@@ -65,4 +64,26 @@ public interface WordContextTemplateRepository extends JpaRepository<WordContext
      * Count contexts for a word
      */
     long countByWordId(UUID wordId);
+
+    /**
+     * Find all word contexts for a specific unit (shared contexts only)
+     */
+    @Query("SELECT wct FROM WordContextTemplate wct " +
+            "LEFT JOIN FETCH wct.word " +
+            "WHERE wct.unit.id = :unitId " +
+            "AND wct.createdForUserId IS NULL " +
+            "ORDER BY wct.word.lemma ASC")
+    List<WordContextTemplate> findByUnitIdShared(@Param("unitId") UUID unitId);
+
+    /**
+     * Find all word contexts for a unit (shared + user-specific)
+     */
+    @Query("SELECT wct FROM WordContextTemplate wct " +
+            "LEFT JOIN FETCH wct.word " +
+            "WHERE wct.unit.id = :unitId " +
+            "AND (wct.createdForUserId IS NULL OR wct.createdForUserId = :userId) " +
+            "ORDER BY wct.word.lemma ASC")
+    List<WordContextTemplate> findByUnitIdForUser(
+            @Param("unitId") UUID unitId,
+            @Param("userId") UUID userId);
 }

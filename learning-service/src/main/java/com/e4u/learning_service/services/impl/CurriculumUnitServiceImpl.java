@@ -7,12 +7,15 @@ import com.e4u.learning_service.dtos.request.CurriculumUnitFilterRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitUpdateRequest;
 import com.e4u.learning_service.dtos.response.CurriculumUnitDetailResponse;
 import com.e4u.learning_service.dtos.response.CurriculumUnitResponse;
+import com.e4u.learning_service.dtos.response.WordContextResponse;
 import com.e4u.learning_service.entities.Curriculum;
 import com.e4u.learning_service.entities.CurriculumUnit;
+import com.e4u.learning_service.entities.WordContextTemplate;
 import com.e4u.learning_service.mapper.CurriculumUnitMapper;
 import com.e4u.learning_service.mapper.GlobalDictionaryMapper;
 import com.e4u.learning_service.repositories.CurriculumRepository;
 import com.e4u.learning_service.repositories.CurriculumUnitRepository;
+import com.e4u.learning_service.repositories.WordContextTemplateRepository;
 import com.e4u.learning_service.repositories.specification.CurriculumUnitSpecification;
 import com.e4u.learning_service.services.CurriculumUnitService;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +43,7 @@ public class CurriculumUnitServiceImpl implements CurriculumUnitService {
 
     private final CurriculumUnitRepository repository;
     private final CurriculumRepository curriculumRepository;
+    private final WordContextTemplateRepository wordContextRepository;
     private final CurriculumUnitMapper mapper;
     private final GlobalDictionaryMapper globalDictionaryMapper;
 
@@ -168,5 +172,54 @@ public class CurriculumUnitServiceImpl implements CurriculumUnitService {
         return repository.findByIdAndDeletedFalse(unitId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CURRICULUM_UNIT_NOT_FOUND,
                         "Curriculum unit not found with id: " + unitId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<WordContextResponse> getWordsByUnitId(UUID unitId) {
+        log.debug("Fetching words for unit: {}", unitId);
+        // Verify unit exists
+        if (!repository.existsById(unitId)) {
+            throw new ResourceNotFoundException(ErrorCode.CURRICULUM_UNIT_NOT_FOUND,
+                    "Curriculum unit not found with id: " + unitId);
+        }
+        List<WordContextTemplate> wordContexts = wordContextRepository.findByUnitIdShared(unitId);
+        return wordContexts.stream()
+                .map(this::toWordContextResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<WordContextResponse> getWordsByUnitIdForUser(UUID unitId, UUID userId) {
+        log.debug("Fetching words for unit: {} and user: {}", unitId, userId);
+        // Verify unit exists
+        if (!repository.existsById(unitId)) {
+            throw new ResourceNotFoundException(ErrorCode.CURRICULUM_UNIT_NOT_FOUND,
+                    "Curriculum unit not found with id: " + unitId);
+        }
+        List<WordContextTemplate> wordContexts = wordContextRepository.findByUnitIdForUser(unitId, userId);
+        return wordContexts.stream()
+                .map(this::toWordContextResponse)
+                .collect(Collectors.toList());
+    }
+
+    private WordContextResponse toWordContextResponse(WordContextTemplate wct) {
+        return WordContextResponse.builder()
+                .id(wct.getId())
+                .unitId(wct.getUnit() != null ? wct.getUnit().getId() : null)
+                .wordId(wct.getWord() != null ? wct.getWord().getId() : null)
+                .word(wct.getWord() != null ? wct.getWord().getLemma() : null)
+                .pronunciation(wct.getWord() != null ? wct.getWord().getPhonetic() : null)
+                .partOfSpeech(wct.getWord() != null ? wct.getWord().getPartOfSpeech() : null)
+                .meaning(wct.getWord() != null ? wct.getWord().getDefinition() : null)
+                .specificMeaning(wct.getSpecificMeaning())
+                .contextSentence(wct.getContextSentence())
+                .contextTranslation(wct.getContextTranslation())
+                .sourceType(wct.getSourceType())
+                .createdForUserId(wct.getCreatedForUserId())
+                .createdAt(wct.getCreatedAt())
+                .updatedAt(wct.getUpdatedAt())
+                .build();
     }
 }

@@ -7,6 +7,7 @@ import com.e4u.learning_service.dtos.request.CurriculumUnitFilterRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUnitUpdateRequest;
 import com.e4u.learning_service.dtos.response.CurriculumUnitDetailResponse;
 import com.e4u.learning_service.dtos.response.CurriculumUnitResponse;
+import com.e4u.learning_service.dtos.response.WordContextResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,4 +34,15 @@ public interface CurriculumUnitService {
     CurriculumUnitResponse partialUpdate(UUID unitId, CurriculumUnitUpdateRequest request);
 
     void softDelete(UUID unitId);
+
+    /**
+     * Get all words (word context templates) for a specific unit.
+     * Returns shared words only (system-level contexts).
+     */
+    List<WordContextResponse> getWordsByUnitId(UUID unitId);
+
+    /**
+     * Get all words for a unit including user-specific contexts.
+     */
+    List<WordContextResponse> getWordsByUnitIdForUser(UUID unitId, UUID userId);
 }
