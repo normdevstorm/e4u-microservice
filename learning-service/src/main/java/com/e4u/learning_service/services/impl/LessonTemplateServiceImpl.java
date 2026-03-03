@@ -4,11 +4,16 @@ import com.e4u.learning_service.dtos.request.LessonTemplateCreateRequest;
 import com.e4u.learning_service.dtos.request.LessonTemplateUpdateRequest;
 import com.e4u.learning_service.dtos.response.LessonTemplateDetailResponse;
 import com.e4u.learning_service.dtos.response.LessonTemplateResponse;
+import com.e4u.learning_service.dtos.response.LessonTemplateWithStatusResponse;
+import com.e4u.learning_service.dtos.response.UserLessonSessionResponse;
 import com.e4u.learning_service.entities.CurriculumUnit;
 import com.e4u.learning_service.entities.LessonTemplate;
+import com.e4u.learning_service.entities.UserLessonSession;
 import com.e4u.learning_service.mapper.LessonTemplateMapper;
+import com.e4u.learning_service.mapper.UserLessonSessionMapper;
 import com.e4u.learning_service.repositories.CurriculumUnitRepository;
 import com.e4u.learning_service.repositories.LessonTemplateRepository;
+import com.e4u.learning_service.repositories.UserLessonSessionRepository;
 import com.e4u.learning_service.services.LessonTemplateService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of LessonTemplateService.
@@ -30,7 +38,9 @@ public class LessonTemplateServiceImpl implements LessonTemplateService {
 
     private final LessonTemplateRepository lessonTemplateRepository;
     private final CurriculumUnitRepository curriculumUnitRepository;
+    private final UserLessonSessionRepository userLessonSessionRepository;
     private final LessonTemplateMapper lessonTemplateMapper;
+    private final UserLessonSessionMapper userLessonSessionMapper;
 
     @Override
     @Transactional
@@ -120,13 +130,39 @@ public class LessonTemplateServiceImpl implements LessonTemplateService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LessonTemplateResponse> getLessonTemplatesByUnitWithUserStatus(UUID unitId, UUID userId) {
+    public List<LessonTemplateWithStatusResponse> getLessonTemplatesByUnitWithUserStatus(UUID unitId, UUID userId) {
         log.debug("Fetching lesson templates for unit: {} with user status for user: {}", unitId, userId);
 
-        // TODO: Implement joining with UserLessonSession to include user progress
-        // status
+        // 1. Fetch all lesson templates for the unit
         List<LessonTemplate> lessons = lessonTemplateRepository.findByUnitIdOrderBySequenceOrderAsc(unitId);
-        return lessonTemplateMapper.toResponseList(lessons);
+        List<LessonTemplateResponse> templateResponses = lessonTemplateMapper.toResponseList(lessons);
+
+        // 2. Fetch all user sessions for lessons in this unit
+        List<UserLessonSession> sessions = userLessonSessionRepository.findByUserIdAndUnitId(userId, unitId);
+
+        // 3. Create a map of lessonTemplateId -> session for O(1) lookup
+        Map<UUID, UserLessonSessionResponse> sessionMap = sessions.stream()
+                .map(userLessonSessionMapper::toResponse)
+                .collect(Collectors.toMap(
+                        UserLessonSessionResponse::getLessonTemplateId,
+                        Function.identity(),
+                        // If multiple sessions exist for same lesson, keep the most recent (by
+                        // updatedAt)
+                        (existing, replacement) -> {
+                            if (replacement.getUpdatedAt() != null && existing.getUpdatedAt() != null
+                                    && replacement.getUpdatedAt().isAfter(existing.getUpdatedAt())) {
+                                return replacement;
+                            }
+                            return existing;
+                        }));
+
+        // 4. Combine templates with sessions
+        return templateResponses.stream()
+                .map(template -> {
+                    UserLessonSessionResponse session = sessionMap.get(template.getId());
+                    return LessonTemplateWithStatusResponse.fromTemplateAndSession(template, session);
+                })
+                .toList();
     }
 
     @Override

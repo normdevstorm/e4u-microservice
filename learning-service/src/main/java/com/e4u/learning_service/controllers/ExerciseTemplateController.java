@@ -1,5 +1,6 @@
 package com.e4u.learning_service.controllers;
 
+import com.e4u.learning_service.common.utils.SecurityUtil;
 import com.e4u.learning_service.dtos.request.ExerciseTemplateCreateRequest;
 import com.e4u.learning_service.dtos.request.ExerciseTemplateUpdateRequest;
 import com.e4u.learning_service.dtos.response.BaseResponse;
@@ -66,7 +67,10 @@ public class ExerciseTemplateController {
         })
         public ResponseEntity<BaseResponse<List<ExerciseTemplateResponse>>> getForLearning(
                         @Parameter(description = "Lesson template ID") @PathVariable UUID lessonTemplateId,
-                        @Parameter(description = "User ID") @RequestParam UUID userId) {
+                        @Parameter(description = "User ID") @RequestParam(required = false) UUID userId) {
+                if (userId == null) {
+                        userId = SecurityUtil.getCurrentUserId();
+                }
                 List<ExerciseTemplateResponse> result = exerciseTemplateService
                                 .getExercisesForLearning(lessonTemplateId, userId);
                 return ResponseEntity.ok(BaseResponse.ok(result));

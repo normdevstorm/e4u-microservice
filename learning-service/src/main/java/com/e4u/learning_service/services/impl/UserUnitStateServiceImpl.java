@@ -8,7 +8,9 @@ import com.e4u.learning_service.entities.CurriculumUnit;
 import com.e4u.learning_service.entities.UserUnitState;
 import com.e4u.learning_service.entities.UserUnitState.UnitStatus;
 import com.e4u.learning_service.repositories.CurriculumUnitRepository;
+import com.e4u.learning_service.repositories.LessonTemplateRepository;
 import com.e4u.learning_service.repositories.UserUnitStateRepository;
+import com.e4u.learning_service.repositories.WordContextTemplateRepository;
 import com.e4u.learning_service.services.UserUnitStateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,8 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
 
     private final UserUnitStateRepository userUnitStateRepository;
     private final CurriculumUnitRepository curriculumUnitRepository;
+    private final LessonTemplateRepository lessonTemplateRepository;
+    private final WordContextTemplateRepository wordContextTemplateRepository;
 
     @Override
     @Transactional
@@ -55,16 +59,16 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
         List<UserUnitState> missingStates = new ArrayList<>();
         for (CurriculumUnit unit : units) {
             if (!statesByUnitId.containsKey(unit.getId())) {
-            UserUnitState newState = UserUnitState.builder()
-                .userId(userId)
-                .unitId(unit.getId())
-                .status(UnitStatus.NOT_STARTED)
-                .currentPriorityScore(0)
-                .difficultyModifier(1.0f)
-                .isFastTracked(false)
-                .proficiencyScore(0.0f)
-                .build();
-            missingStates.add(newState);
+                UserUnitState newState = UserUnitState.builder()
+                        .userId(userId)
+                        .unitId(unit.getId())
+                        .status(UnitStatus.NOT_STARTED)
+                        .currentPriorityScore(0)
+                        .difficultyModifier(1.0f)
+                        .isFastTracked(false)
+                        .proficiencyScore(0.0f)
+                        .build();
+                missingStates.add(newState);
             }
         }
 
@@ -73,12 +77,13 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
             savedStates.forEach(state -> statesByUnitId.put(state.getUnitId(), state));
 
             log.info("Initialized {} missing UserUnitState records for user {} in curriculum {}",
-                savedStates.size(), userId, curriculumId);
+                    savedStates.size(), userId, curriculumId);
         }
-        
+
         // 4. Combine unit info with user state
+        final UUID finalUserId = userId;
         return units.stream()
-                .map(unit -> buildResponse(unit, statesByUnitId.get(unit.getId())))
+                .map(unit -> buildResponse(unit, statesByUnitId.get(unit.getId()), finalUserId))
                 .sorted(Comparator.comparing(UserUnitStateResponse::getDefaultOrder,
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .collect(Collectors.toList());
@@ -128,8 +133,9 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
             if (units == null || units.isEmpty()) {
                 results = Collections.emptyList();
             } else {
+                // No userId available, use null (will only count shared words)
                 results = units.stream()
-                        .map(unit -> buildResponse(unit, null))
+                        .map(unit -> buildResponse(unit, null, null))
                         .collect(Collectors.toList());
             }
         }
@@ -158,7 +164,7 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
         Optional<UserUnitState> userState = userUnitStateRepository.findByUserIdAndUnitId(userId, unitId);
 
         // 3. Combine and return
-        return buildResponse(unit, userState.orElse(null));
+        return buildResponse(unit, userState.orElse(null), userId);
     }
 
     @Override
@@ -179,7 +185,7 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
                         CurriculumUnit unit = curriculumUnitRepository.findByIdAndDeletedFalse(state.getUnitId())
                                 .orElse(null);
                         if (unit != null) {
-                            return buildResponse(unit, state);
+                            return buildResponse(unit, state, state.getUserId());
                         }
                         return buildResponseFromStateOnly(state);
                     } catch (Exception e) {
@@ -192,8 +198,24 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
 
     /**
      * Build a combined response from unit entity and user state.
+     * 
+     * @param unit   The curriculum unit entity
+     * @param state  The user unit state (nullable if user hasn't started the unit)
+     * @param userId The user ID (nullable when filtering by curriculum only)
      */
-    private UserUnitStateResponse buildResponse(CurriculumUnit unit, UserUnitState state) {
+    private UserUnitStateResponse buildResponse(CurriculumUnit unit, UserUnitState state, UUID userId) {
+        // Calculate word count: shared words + user-specific words
+        long wordCount;
+        if (userId != null) {
+            wordCount = wordContextTemplateRepository.countByUnitIdForUser(unit.getId(), userId);
+        } else {
+            // No userId, only count shared words
+            wordCount = wordContextTemplateRepository.countByUnitIdShared(unit.getId());
+        }
+
+        // Calculate lesson count from templates (not user sessions)
+        int lessonCount = (int) lessonTemplateRepository.countByUnitId(unit.getId());
+
         UserUnitStateResponse.UserUnitStateResponseBuilder builder = UserUnitStateResponse.builder()
                 // Unit information
                 .unitId(unit.getId())
@@ -205,7 +227,8 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
                 .baseKeywords(unit.getBaseKeywords())
                 .description(unit.getDescription())
                 .isActive(unit.getIsActive())
-                .wordCount(unit.getWordContextTemplates() != null ? (long) unit.getWordContextTemplates().size() : 0L);
+                .wordCount(wordCount)
+                .lessonCount(lessonCount);
 
         // Add user state if available
         if (state != null) {
@@ -216,7 +239,6 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
                     .isFastTracked(state.getIsFastTracked())
                     .proficiencyScore(state.getProficiencyScore())
                     .difficultyModifier(state.getDifficultyModifier())
-                    .lessonCount(state.getLessonSessions() != null ? state.getLessonSessions().size() : 0)
                     .lastInteractionAt(state.getLastInteractionAt())
                     .stateCreatedAt(state.getCreatedAt())
                     .stateUpdatedAt(state.getUpdatedAt());
@@ -230,18 +252,29 @@ public class UserUnitStateServiceImpl implements UserUnitStateService {
 
     /**
      * Build a response from state only when unit details are unavailable.
+     * Uses repository to fetch correct counts.
      */
     private UserUnitStateResponse buildResponseFromStateOnly(UserUnitState state) {
+        UUID unitId = state.getUnitId();
+        UUID userId = state.getUserId();
+
+        // Calculate word count: shared words + user-specific words
+        long wordCount = wordContextTemplateRepository.countByUnitIdForUser(unitId, userId);
+
+        // Calculate lesson count from templates (not user sessions)
+        int lessonCount = (int) lessonTemplateRepository.countByUnitId(unitId);
+
         return UserUnitStateResponse.builder()
-                .unitId(state.getUnitId())
+                .unitId(unitId)
                 .stateId(state.getId())
-                .userId(state.getUserId())
+                .userId(userId)
                 .status(state.getStatus())
                 .currentPriorityScore(state.getCurrentPriorityScore())
                 .isFastTracked(state.getIsFastTracked())
                 .proficiencyScore(state.getProficiencyScore())
                 .difficultyModifier(state.getDifficultyModifier())
-            .lessonCount(state.getLessonSessions() != null ? state.getLessonSessions().size() : 0)
+                .wordCount(wordCount)
+                .lessonCount(lessonCount)
                 .lastInteractionAt(state.getLastInteractionAt())
                 .stateCreatedAt(state.getCreatedAt())
                 .stateUpdatedAt(state.getUpdatedAt())

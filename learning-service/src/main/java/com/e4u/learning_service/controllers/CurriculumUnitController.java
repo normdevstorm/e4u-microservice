@@ -81,17 +81,14 @@ public class CurriculumUnitController {
                         @ApiResponse(responseCode = "404", description = "Curriculum unit not found")
         })
         public ResponseEntity<BaseResponse<List<WordContextResponse>>> getWordsByUnitId(
-                        @Parameter(description = "Unit ID") @PathVariable("unitId") UUID unitId
-        // @Parameter(description = "User ID (optional, for user-specific contexts)")
-        // @RequestParam(required = false) UUID userId
-        ) {
+                        @Parameter(description = "Unit ID") @PathVariable("unitId") UUID unitId,
+                        // @Parameter(description = "User ID (optional, for user-specific contexts)")
+                        @RequestParam(name = "userId", required = false) UUID userId) {
                 List<WordContextResponse> result;
-                // if (userId != null) {
-                result = service.getWordsByUnitId(unitId);
-                // } else {
-                UUID currentUser = SecurityUtil.getCurrentUserId();
-                result.addAll(service.getWordsByUnitIdForUser(unitId, currentUser));
-                // }
+                if (userId == null) {
+                        userId = SecurityUtil.getCurrentUserId();
+                }
+                result = service.getWordsByUnitIdForUser(unitId, userId);
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }
 

@@ -4,6 +4,7 @@ import com.e4u.learning_service.dtos.request.LessonTemplateCreateRequest;
 import com.e4u.learning_service.dtos.request.LessonTemplateUpdateRequest;
 import com.e4u.learning_service.dtos.response.LessonTemplateDetailResponse;
 import com.e4u.learning_service.dtos.response.LessonTemplateResponse;
+import com.e4u.learning_service.dtos.response.LessonTemplateWithStatusResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,10 +37,12 @@ public interface LessonTemplateService {
 
     /**
      * Get all lesson templates for a curriculum unit with user session status
+     * 
      * @param unitId The curriculum unit ID
      * @param userId The user ID to check session status for
+     * @return List of lesson templates combined with user's session status
      */
-    List<LessonTemplateResponse> getLessonTemplatesByUnitWithUserStatus(UUID unitId, UUID userId);
+    List<LessonTemplateWithStatusResponse> getLessonTemplatesByUnitWithUserStatus(UUID unitId, UUID userId);
 
     /**
      * Update a lesson template

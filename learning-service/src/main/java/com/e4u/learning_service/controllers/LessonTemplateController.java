@@ -1,10 +1,12 @@
 package com.e4u.learning_service.controllers;
 
+import com.e4u.learning_service.common.utils.SecurityUtil;
 import com.e4u.learning_service.dtos.request.LessonTemplateCreateRequest;
 import com.e4u.learning_service.dtos.request.LessonTemplateUpdateRequest;
 import com.e4u.learning_service.dtos.response.BaseResponse;
 import com.e4u.learning_service.dtos.response.LessonTemplateDetailResponse;
 import com.e4u.learning_service.dtos.response.LessonTemplateResponse;
+import com.e4u.learning_service.dtos.response.LessonTemplateWithStatusResponse;
 import com.e4u.learning_service.services.LessonTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -70,14 +72,18 @@ public class LessonTemplateController {
         }
 
         @GetMapping("/unit/{unitId}/with-status")
-        @Operation(summary = "Get lesson templates with user status", description = "Retrieve lesson templates with user's learning progress status")
+        @Operation(summary = "Get lesson templates with user status", description = "Retrieve lesson templates combined with user's learning progress status derived from their session data")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Successfully retrieved lesson templates with status")
         })
-        public ResponseEntity<BaseResponse<List<LessonTemplateResponse>>> getByUnitWithUserStatus(
+        public ResponseEntity<BaseResponse<List<LessonTemplateWithStatusResponse>>> getByUnitWithUserStatus(
                         @Parameter(description = "Curriculum unit ID") @PathVariable("unitId") UUID unitId,
-                        @Parameter(description = "User ID") @RequestParam("userId") UUID userId) {
-                List<LessonTemplateResponse> result = lessonTemplateService
+                        @Parameter(description = "User ID") @RequestParam(name = "userId", required = false) UUID userId) {
+                if (userId == null) {
+                        userId = SecurityUtil.getCurrentUserId();
+                }
+
+                List<LessonTemplateWithStatusResponse> result = lessonTemplateService
                                 .getLessonTemplatesByUnitWithUserStatus(unitId, userId);
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }
