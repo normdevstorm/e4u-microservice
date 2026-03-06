@@ -3,6 +3,7 @@ package com.e4u.learning_service.services.evaluation.strategies;
 import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.MultipleChoiceExerciseData;
+import com.e4u.learning_service.entities.pojos.answers.MultipleChoiceAnswer;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationStrategy;
 import org.springframework.stereotype.Component;
@@ -79,6 +80,11 @@ public class MultipleChoiceEvaluator implements ExerciseEvaluationStrategy {
     private int parseSelectedIndex(Object userAnswer) {
         if (userAnswer == null)
             return -1;
+
+        // Primary path: typed answer object from FE
+        if (userAnswer instanceof MultipleChoiceAnswer answer) {
+            return answer.getSelectedIndex() != null ? answer.getSelectedIndex() : -1;
+        }
 
         if (userAnswer instanceof Number) {
             return ((Number) userAnswer).intValue();

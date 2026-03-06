@@ -11,6 +11,8 @@ import com.e4u.learning_service.repositories.UserExerciseAttemptRepository;
 import com.e4u.learning_service.repositories.UserLessonSessionRepository;
 import com.e4u.learning_service.services.UserExerciseAttemptService;
 import com.e4u.learning_service.services.UserVocabProgressService;
+import com.e4u.learning_service.services.evaluation.EvaluationResult;
+import com.e4u.learning_service.services.evaluation.ExerciseEvaluationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -36,11 +37,12 @@ public class UserExerciseAttemptServiceImpl implements UserExerciseAttemptServic
     private final ExerciseTemplateRepository exerciseTemplateRepository;
     private final UserExerciseAttemptMapper attemptMapper;
     private final UserVocabProgressService vocabProgressService;
+    private final ExerciseEvaluationService evaluationService;
 
     @Override
     @Transactional
     public UserExerciseAttemptResponse submitAttempt(UserExerciseAttemptRequest request) {
-        log.info("Submitting exercise attempt for session: {} exercise: {}", 
+        log.info("Submitting exercise attempt for session: {} exercise: {}",
                 request.getSessionId(), request.getExerciseTemplateId());
 
         UserLessonSession session = sessionRepository.findById(request.getSessionId())
@@ -51,38 +53,46 @@ public class UserExerciseAttemptServiceImpl implements UserExerciseAttemptServic
                 .orElseThrow(() -> new EntityNotFoundException(
                         "ExerciseTemplate not found with ID: " + request.getExerciseTemplateId()));
 
-        // Validate the answer
-        boolean isCorrect = validateAnswer(exerciseTemplate, request.getUserAnswer());
+        // Determine current attempt number (1-based) for this session & exercise
+        int attemptNumber = attemptRepository.existsBySessionIdAndExerciseTemplateId(
+                request.getSessionId(), request.getExerciseTemplateId()) ? 2 : 1;
+
+        // Evaluate the answer using strategy-based evaluator
+        EvaluationResult evaluationResult = evaluationService.evaluate(
+                exerciseTemplate,
+                request.getUserAnswer(),
+                attemptNumber);
 
         // Create attempt record
         UserExerciseAttempt attempt = UserExerciseAttempt.builder()
                 .session(session)
                 .exerciseTemplate(exerciseTemplate)
                 .userAnswer(request.getUserAnswer())
-                .isCorrect(isCorrect)
+                .isCorrect(evaluationResult.isCorrect())
+                .score(evaluationResult.getScore())
                 .timeTakenSeconds(request.getTimeTakenSeconds())
                 .build();
 
         attempt = attemptRepository.save(attempt);
 
-        // Update session progress
-        session.recordExerciseCompletion(isCorrect);
+        // Update session progress based on correctness
+        session.recordExerciseCompletion(Boolean.TRUE.equals(attempt.getIsCorrect()));
         sessionRepository.save(session);
 
         // Update vocab progress if the exercise targets a word via WordContextTemplate
-        if (exerciseTemplate.getWordContextTemplate() != null 
+        if (exerciseTemplate.getWordContextTemplate() != null
                 && exerciseTemplate.getWordContextTemplate().getWord() != null) {
             UUID wordId = exerciseTemplate.getWordContextTemplate().getWord().getId();
             UUID userId = session.getUserId();
-            
-            if (isCorrect) {
+
+            if (Boolean.TRUE.equals(attempt.getIsCorrect())) {
                 vocabProgressService.recordCorrectAnswer(userId, wordId);
             } else {
                 vocabProgressService.recordIncorrectAnswer(userId, wordId);
             }
         }
 
-        log.info("Attempt recorded: {} isCorrect: {}", attempt.getId(), isCorrect);
+        log.info("Attempt recorded: {} isCorrect: {}", attempt.getId(), attempt.getIsCorrect());
 
         // Return response with correct answer revealed
         return attemptMapper.toResponseWithAnswer(attempt);
@@ -183,25 +193,6 @@ public class UserExerciseAttemptServiceImpl implements UserExerciseAttemptServic
 
     // ========== Private Helper Methods ==========
 
-    /**
-     * Validate user's answer against the exercise data.
-     * TODO: This should be refactored to use ExerciseEvaluator strategies
-     * for proper type-safe validation based on ExerciseData type.
-     */
-    private boolean validateAnswer(ExerciseTemplate exercise, Map<String, Object> userAnswer) {
-        if (userAnswer == null || exercise.getExerciseData() == null) {
-            return false;
-        }
-
-        // Basic validation - compare user answer with embedded correctAnswer in ExerciseData
-        // For proper validation, use ExerciseEvaluator strategies
-        Object userValue = userAnswer.get("answer");
-        if (userValue == null) {
-            userValue = userAnswer.get("value");
-        }
-        
-        // TODO: Implement proper validation using ExerciseData subclass methods
-        // For now, delegate to the evaluator service for real validation
-        return false;
-    }
+    // Future: integrate with ExerciseEvaluationService using ExerciseAnswer
+    // to compute correctness and detailed feedback per exercise type.
 }

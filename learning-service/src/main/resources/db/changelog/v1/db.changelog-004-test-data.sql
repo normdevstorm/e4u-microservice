@@ -366,14 +366,17 @@ VALUES
 -- ============================================
 INSERT INTO public.exercise_templates (id, lesson_template_id, word_context_template_id, exercise_type, exercise_payload, created_at, deleted)
 VALUES 
+    -- CONTEXTUAL_DISCOVERY flashcard for "accommodate"
     ('ef110001-0001-0000-0000-000000000001', 'de110001-0001-0000-0000-000000000001', 'bc110001-0001-0000-0000-000000000001', 'CONTEXTUAL_DISCOVERY', 
-     '{"type": "CONTEXTUAL_DISCOVERY", "sentence": "The lecture hall can accommodate 200 students.", "targetWord": "accommodate", "translation": "chứa", "correctAnswer": "accommodate"}', 
+     '{"type": "CONTEXTUAL_DISCOVERY", "prompt": "accommodate (verb)", "hint": "chứa; cung cấp chỗ ở", "highlightedText": "The lecture hall can accommodate 200 students.", "audioUrl": null}', 
      CURRENT_TIMESTAMP, false),
+    -- MULTIPLE_CHOICE with explicit source/target languages
     ('ef110001-0001-0000-0000-000000000002', 'de110001-0001-0000-0000-000000000001', 'bc110001-0001-0000-0000-000000000001', 'MULTIPLE_CHOICE', 
-     '{"type": "MULTIPLE_CHOICE", "question": "What does accommodate mean?", "options": ["to provide space for", "to reject", "to ignore", "to decrease"], "correctAnswer": "to provide space for"}', 
+     '{"type": "MULTIPLE_CHOICE", "prompt": "Chọn nghĩa tiếng Việt đúng cho từ accommodate.", "question": "Accommodate có nghĩa là gì?", "options": ["cung cấp chỗ ở / chứa", "từ chối", "phớt lờ", "giảm xuống"], "correctAnswer": "cung cấp chỗ ở / chứa", "sourceLanguage": "en", "targetLanguage": "vi"}', 
      CURRENT_TIMESTAMP, false),
+    -- CLOZE_WITH_AUDIO aligned with ClozeWithAudioExerciseData
     ('ef221002-0001-0000-0000-000000000001', 'de221002-0001-0000-0000-000000000001', 'bc221002-0001-0000-0000-000000000001', 'CLOZE_WITH_AUDIO', 
-     '{"type": "CLOZE_WITH_AUDIO", "sentence": "We need to _____ the contract terms.", "audioUrl": null, "correctAnswer": "negotiate"}', 
+     '{"type": "CLOZE_WITH_AUDIO", "sentenceTemplate": "We need to _____ the contract terms.", "correctAnswer": "negotiate", "hint": "You do this when you discuss terms to reach an agreement.", "audioUrl": null}', 
      CURRENT_TIMESTAMP, false);
 
 --changeset system:test-data-009 context:test,dev comment:Insert user goals

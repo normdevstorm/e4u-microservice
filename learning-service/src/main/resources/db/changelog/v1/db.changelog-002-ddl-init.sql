@@ -298,8 +298,7 @@ CREATE TABLE IF NOT EXISTS public.user_lesson_sessions (
     deleted_at TIMESTAMP(6) WITH TIME ZONE,
     
     CONSTRAINT user_lesson_sessions_status_check 
-        CHECK (status IN ('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'PAUSED')),
-    CONSTRAINT unique_user_lesson_session UNIQUE (user_id, lesson_template_id)
+        CHECK (status IN ('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'PAUSED'))
 );
 
 --changeset system:ddl-init-013 comment:Create user_exercise_attempts table

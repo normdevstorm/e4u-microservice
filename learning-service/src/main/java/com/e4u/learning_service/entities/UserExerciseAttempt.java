@@ -1,10 +1,11 @@
 package com.e4u.learning_service.entities;
 
-import com.e4u.learning_service.converters.JsonbConverter;
+import com.e4u.learning_service.entities.pojos.answers.ExerciseAnswer;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -19,8 +20,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "user_exercise_attempts", indexes = {
-    @Index(name = "idx_attempt_session", columnList = "session_id"),
-    @Index(name = "idx_attempt_exercise", columnList = "exercise_template_id")
+        @Index(name = "idx_attempt_session", columnList = "session_id"),
+        @Index(name = "idx_attempt_exercise", columnList = "exercise_template_id")
 })
 public class UserExerciseAttempt extends BaseEntity {
 
@@ -38,11 +39,11 @@ public class UserExerciseAttempt extends BaseEntity {
 
     /**
      * JSONB containing the user's submitted answer.
-     * Structure matches the exerciseType format.
+     * Stored as a polymorphic ExerciseAnswer payload.
      */
-    @Convert(converter = JsonbConverter.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "user_answer", columnDefinition = "jsonb")
-    private Map<String, Object> userAnswer;
+    private ExerciseAnswer userAnswer;
 
     @Column(name = "is_correct")
     private Boolean isCorrect;
@@ -63,7 +64,7 @@ public class UserExerciseAttempt extends BaseEntity {
      * Record the user's answer. Note: Validation should be done externally
      * using exercise evaluator strategies.
      */
-    public void submitAnswer(Map<String, Object> answer) {
+    public void submitAnswer(ExerciseAnswer answer) {
         this.userAnswer = answer;
         // Note: isCorrect should be set after external validation
     }
@@ -71,10 +72,10 @@ public class UserExerciseAttempt extends BaseEntity {
     /**
      * Record answer with validation result and update session
      */
-    public void submitAnswer(Map<String, Object> answer, boolean correct) {
+    public void submitAnswer(ExerciseAnswer answer, boolean correct) {
         this.userAnswer = answer;
         this.isCorrect = correct;
-        
+
         // Update session progress
         if (session != null) {
             session.recordExerciseCompletion(this.isCorrect);

@@ -17,7 +17,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserLessonSessionStartRequest {
 
-    @NotNull(message = "User ID is required")
     private UUID userId;
 
     @NotNull(message = "Lesson template ID is required")

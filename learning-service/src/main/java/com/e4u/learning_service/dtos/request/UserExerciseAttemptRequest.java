@@ -1,12 +1,12 @@
 package com.e4u.learning_service.dtos.request;
 
+import com.e4u.learning_service.entities.pojos.answers.ExerciseAnswer;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -25,7 +25,7 @@ public class UserExerciseAttemptRequest {
     private UUID exerciseTemplateId;
 
     @NotNull(message = "User answer is required")
-    private Map<String, Object> userAnswer;
+    private ExerciseAnswer userAnswer;
 
     /**
      * Time taken to complete this exercise (in seconds)

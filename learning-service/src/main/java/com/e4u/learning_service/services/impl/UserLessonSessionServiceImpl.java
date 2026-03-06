@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -45,64 +44,82 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
     @Override
     @Transactional
     public UserLessonSessionDetailResponse startOrResumeSession(UserLessonSessionStartRequest request) {
-        log.info("Starting or resuming session for user: {} on lesson: {}", 
+        log.info("Starting or resuming session for user: {} on lesson: {}",
                 request.getUserId(), request.getLessonTemplateId());
 
-        // Check for existing session
-        Optional<UserLessonSession> existingSession = sessionRepository
-                .findByUserIdAndLessonTemplateId(request.getUserId(), request.getLessonTemplateId());
+        // Fetch ALL sessions for this user+lesson, newest first
+        List<UserLessonSession> allSessions = sessionRepository
+                .findAllByUserIdAndLessonTemplateId(request.getUserId(), request.getLessonTemplateId());
 
         UserLessonSession session;
-        if (existingSession.isPresent()) {
-            session = existingSession.get();
-            if (session.getStatus() == SessionStatus.COMPLETED) {
-                // Reset completed session for re-learning
-                log.info("Resetting completed session for re-learning: {}", session.getId());
-                session.setStatus(SessionStatus.NOT_STARTED);
-                session.setCompletedItems(0);
-                session.setCorrectItems(0);
-                session.setAccuracyRate(null);
-            } else {
-                log.info("Resuming existing session: {}", session.getId());
-            }
+
+        if (allSessions.isEmpty()) {
+            // ---- 2a: No prior history — create a fresh IN_PROGRESS session ----
+            log.info("No prior session found for user: {} lesson: {} — creating new.",
+                    request.getUserId(), request.getLessonTemplateId());
+            session = buildAndSaveNewSession(request, null);
+
         } else {
-            // Create new session
-            LessonTemplate lessonTemplate = lessonTemplateRepository.findById(request.getLessonTemplateId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "LessonTemplate not found with ID: " + request.getLessonTemplateId()));
+            UserLessonSession latestSession = allSessions.get(0); // newest
+            boolean hasCompletedSession = allSessions.stream()
+                    .anyMatch(s -> s.getStatus() == SessionStatus.COMPLETED);
 
-            UserUnitState userUnitState = null;
-            if (request.getUserUnitStateId() != null) {
-                userUnitState = userUnitStateRepository.findById(request.getUserUnitStateId()).orElse(null);
+            if (!hasCompletedSession) {
+                // ---- No completed session yet — resume the latest if it still has remaining
+                // exercises ----
+                boolean canResume = latestSession.getCompletedItems() != null
+                        && latestSession.getTotalItems() != null
+                        && latestSession.getCompletedItems() < latestSession.getTotalItems();
+
+                if (canResume) {
+                    log.info("Resuming in-progress session: {} ({}/{} done).",
+                            latestSession.getId(),
+                            latestSession.getCompletedItems(), latestSession.getTotalItems());
+                    session = latestSession;
+                } else {
+                    // Edge case: session has no exercises or all done but not marked complete
+                    log.info("Latest session {} has no remaining exercises — creating new.",
+                            latestSession.getId());
+                    session = buildAndSaveNewSession(request, latestSession.getTotalItems());
+                }
+
+            } else {
+                // ---- 2b: At least one completed session exists ----
+                if (latestSession.getStatus() == SessionStatus.COMPLETED) {
+                    // ---- 2b2: The latest session is itself COMPLETED — start fresh ----
+                    log.info("Latest session {} is COMPLETED — creating fresh IN_PROGRESS session.",
+                            latestSession.getId());
+                    session = buildAndSaveNewSession(request, latestSession.getTotalItems());
+
+                } else {
+                    // ---- 2b1: An in-progress/paused session was created AFTER a completion —
+                    // resume it ----
+                    boolean canResume = latestSession.getCompletedItems() != null
+                            && latestSession.getTotalItems() != null
+                            && latestSession.getCompletedItems() < latestSession.getTotalItems();
+
+                    if (canResume) {
+                        log.info("Resuming post-completion session: {} ({}/{} done).",
+                                latestSession.getId(),
+                                latestSession.getCompletedItems(), latestSession.getTotalItems());
+                        session = latestSession;
+                    } else {
+                        log.info("Post-completion session {} exhausted — creating new session.",
+                                latestSession.getId());
+                        session = buildAndSaveNewSession(request, latestSession.getTotalItems());
+                    }
+                }
             }
-
-            // Get exercise count for this lesson
-            List<ExerciseTemplate> exercises = exerciseTemplateRepository
-                    .findByLessonTemplateIdForUser(request.getLessonTemplateId(), request.getUserId());
-
-            session = UserLessonSession.builder()
-                    .userId(request.getUserId())
-                    .lessonTemplate(lessonTemplate)
-                    .userUnitState(userUnitState)
-                    .status(SessionStatus.NOT_STARTED)
-                    .totalItems(exercises.size())
-                    .completedItems(0)
-                    .correctItems(0)
-                    .build();
-
-            session = sessionRepository.save(session);
-            log.info("Created new session with ID: {}", session.getId());
         }
 
-        // Start the session if not started
-        if (session.getStatus() == SessionStatus.NOT_STARTED) {
+        // Transition to IN_PROGRESS if not already running
+        if (session.getStatus() != SessionStatus.IN_PROGRESS) {
             List<ExerciseTemplate> exercises = exerciseTemplateRepository
                     .findByLessonTemplateIdForUser(request.getLessonTemplateId(), request.getUserId());
             session.start(exercises.size());
             session = sessionRepository.save(session);
         }
 
-        // Build detailed response with exercises
         return buildDetailedResponse(session);
     }
 
@@ -204,7 +221,7 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
         session.recordExerciseCompletion(isCorrect);
 
         // Auto-complete if all exercises done
-        if (session.getCompletedItems() != null && session.getTotalItems() != null 
+        if (session.getCompletedItems() != null && session.getTotalItems() != null
                 && session.getCompletedItems() >= session.getTotalItems()) {
             session.complete();
         }
@@ -218,14 +235,18 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
     public UserLessonSessionResponse getOrCreateSession(UUID userId, UUID lessonTemplateId, UUID userUnitStateId) {
         log.debug("Getting or creating session for user: {} on lesson: {}", userId, lessonTemplateId);
 
-        Optional<UserLessonSession> existingSession = sessionRepository
-                .findByUserIdAndLessonTemplateId(userId, lessonTemplateId);
+        // Return the latest in-progress/paused session if one exists
+        List<UserLessonSession> allSessions = sessionRepository
+                .findAllByUserIdAndLessonTemplateId(userId, lessonTemplateId);
 
-        if (existingSession.isPresent()) {
-            return sessionMapper.toResponse(existingSession.get());
+        if (!allSessions.isEmpty()) {
+            UserLessonSession latest = allSessions.get(0);
+            if (latest.getStatus() != SessionStatus.COMPLETED) {
+                return sessionMapper.toResponse(latest);
+            }
         }
 
-        // Create new session
+        // No usable session — delegate to startOrResumeSession for full creation logic
         UserLessonSessionStartRequest request = UserLessonSessionStartRequest.builder()
                 .userId(userId)
                 .lessonTemplateId(lessonTemplateId)
@@ -233,8 +254,7 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
                 .build();
 
         UserLessonSessionDetailResponse detail = startOrResumeSession(request);
-        
-        // Convert to simple response
+
         return UserLessonSessionResponse.builder()
                 .id(detail.getId())
                 .userId(detail.getUserId())
@@ -266,16 +286,53 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
 
     // ========== Private Helper Methods ==========
 
+    /**
+     * Creates, persists, and returns a brand-new NOT_STARTED session.
+     * If {@code inheritedTotalItems} is provided it is used as the initial
+     * {@code totalItems}
+     * so callers know the exercise count without an extra query. The real count is
+     * refreshed when {@code session.start()} is called before the first IN_PROGRESS
+     * save.
+     */
+    private UserLessonSession buildAndSaveNewSession(
+            UserLessonSessionStartRequest request,
+            Integer inheritedTotalItems) {
+
+        LessonTemplate lessonTemplate = lessonTemplateRepository.findById(request.getLessonTemplateId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "LessonTemplate not found with ID: " + request.getLessonTemplateId()));
+
+        UserUnitState userUnitState = null;
+        if (request.getUserUnitStateId() != null) {
+            userUnitState = userUnitStateRepository.findById(request.getUserUnitStateId()).orElse(null);
+        }
+
+        UserLessonSession session = UserLessonSession.builder()
+                .userId(request.getUserId())
+                .lessonTemplate(lessonTemplate)
+                .userUnitState(userUnitState)
+                .status(SessionStatus.NOT_STARTED)
+                .totalItems(inheritedTotalItems != null ? inheritedTotalItems : 0)
+                .completedItems(0)
+                .correctItems(0)
+                .build();
+
+        session = sessionRepository.save(session);
+        log.info("Created new session with ID: {}", session.getId());
+        return session;
+    }
+
     private UserLessonSessionDetailResponse buildDetailedResponse(UserLessonSession session) {
         UserLessonSessionDetailResponse response = sessionMapper.toDetailResponse(session);
 
         // Get exercises without exposing correct answers
         List<ExerciseTemplate> exercises = exerciseTemplateRepository
                 .findByLessonTemplateIdForUser(
-                        session.getLessonTemplate().getId(), 
+                        session.getLessonTemplate().getId(),
                         session.getUserId());
-        
-        List<ExerciseTemplateResponse> exerciseResponses = exerciseTemplateMapper.toResponseListWithoutAnswer(exercises);
+
+        List<ExerciseTemplateResponse> exerciseResponses = exerciseTemplateMapper
+                .toResponseListWithoutAnswer(exercises);
         response.setExercises(exerciseResponses);
 
         return response;

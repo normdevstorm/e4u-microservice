@@ -3,6 +3,7 @@ package com.e4u.learning_service.services.evaluation.strategies;
 import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.SentenceBuildingExerciseData;
+import com.e4u.learning_service.entities.pojos.answers.SentenceBuildingAnswer;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationStrategy;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -88,6 +89,11 @@ public class SentenceBuildingEvaluator implements ExerciseEvaluationStrategy {
     private List<String> parseUserAnswer(Object userAnswer) {
         if (userAnswer == null) {
             return List.of();
+        }
+
+        if (userAnswer instanceof SentenceBuildingAnswer answer) {
+            List<String> placed = answer.getPlacedWords();
+            return placed != null ? placed : List.of();
         }
 
         if (userAnswer instanceof List) {

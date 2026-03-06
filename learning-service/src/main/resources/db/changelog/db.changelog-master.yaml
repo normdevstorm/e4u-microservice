@@ -12,6 +12,16 @@ databaseChangeLog:
   - include:
       file: v1/db.changelog-002-ddl-init.sql
       relativeToChangelogFile: true
+
+  # Step 2.1: Backfill missing polymorphic discriminator in stored answers
+  - include:
+      file: v1/db.changelog-007-user-answer-type.sql
+      relativeToChangelogFile: true
+
+  # Step 2.2: Drop unique constraint on (user_id, lesson_template_id) — one user can have multiple sessions per lesson
+  - include:
+      file: v1/db.changelog-008-drop-unique-session-constraint.sql
+      relativeToChangelogFile: true
   
   # Step 3: Create indexes for performance
   - include:
@@ -21,5 +31,15 @@ databaseChangeLog:
   # Step 4: Insert test data (only for test/dev contexts)
   - include:
       file: v1/db.changelog-004-test-data.sql
+      relativeToChangelogFile: true
+
+  # Step 5: Additional exercise_templates test data across all exercise types
+  - include:
+      file: v1/db.changelog-005-exercise-templates.sql
+      relativeToChangelogFile: true
+
+  # Step 6: Bulk exercise_templates test data (increase quantity for load/testing)
+  - include:
+      file: v1/db.changelog-006-exercise-templates-bulk.sql
       relativeToChangelogFile: true
 

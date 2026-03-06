@@ -3,6 +3,7 @@ package com.e4u.learning_service.services.evaluation.strategies;
 import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.AssistedCompositionExerciseData;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
+import com.e4u.learning_service.entities.pojos.answers.AssistedCompositionAnswer;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationStrategy;
 import org.springframework.stereotype.Component;
@@ -25,25 +26,38 @@ public class AssistedCompositionEvaluator implements ExerciseEvaluationStrategy 
     public EvaluationResult evaluate(ExerciseData exerciseData, Object userAnswer, int attemptNumber, int maxAttempts) {
         AssistedCompositionExerciseData data = (AssistedCompositionExerciseData) exerciseData;
 
-        String userAnswerStr = userAnswer != null ? userAnswer.toString() : "";
-        String normalizedUserAnswer = normalizeAnswer(userAnswerStr);
+        // Extract the composition text from the typed answer
+        String compositionText;
+        if (userAnswer instanceof AssistedCompositionAnswer answer) {
+            compositionText = answer.getComposition() != null ? answer.getComposition() : "";
+        } else {
+            compositionText = userAnswer != null ? userAnswer.toString() : "";
+        }
+        compositionText = compositionText.trim();
+
+        String normalizedComposition = normalizeAnswer(compositionText);
         String expectedWord = data.getExpectedWord();
         String normalizedExpected = normalizeAnswer(expectedWord);
-
-        // Check primary expected word
-        boolean isCorrect = normalizedUserAnswer.equals(normalizedExpected);
-
-        // Check alternatives if primary doesn't match
         List<String> alternatives = data.getAlternativeAnswers();
-        if (!isCorrect && alternatives != null) {
+
+        // Correctness rule 1: composition must CONTAIN the expected word (or an
+        // alternative)
+        boolean containsExpected = normalizedComposition.contains(normalizedExpected);
+        if (!containsExpected && alternatives != null) {
             for (String alt : alternatives) {
-                if (normalizedUserAnswer.equals(normalizeAnswer(alt))) {
-                    isCorrect = true;
+                if (normalizedComposition.contains(normalizeAnswer(alt))) {
+                    containsExpected = true;
                     break;
                 }
             }
         }
 
+        // Correctness rule 2: composition must meet the minimum word count
+        int wordCount = compositionText.isEmpty() ? 0 : compositionText.split("\\s+").length;
+        int minWordCount = data.getMinWordCount() != null ? data.getMinWordCount() : 1;
+        boolean meetsWordCount = wordCount >= minWordCount;
+
+        boolean isCorrect = containsExpected && meetsWordCount;
         boolean isLastAttempt = attemptNumber >= maxAttempts;
 
         if (isCorrect) {
@@ -56,39 +70,45 @@ public class AssistedCompositionEvaluator implements ExerciseEvaluationStrategy 
                     .score(calculateScore(attemptNumber))
                     .feedbackMessage(feedback)
                     .alternatives(alternatives)
-                    .normalizedUserAnswer(normalizedUserAnswer)
+                    .normalizedUserAnswer(compositionText)
                     .build();
         }
 
-        // Check for close match
-        boolean isCloseMatch = isCloseMatch(normalizedUserAnswer, normalizedExpected);
+        // Build specific error feedback based on which rule(s) failed
+        String errorMessage;
+        if (!containsExpected && !meetsWordCount) {
+            errorMessage = String.format(
+                    "Your composition needs at least %d word(s) and must include the word '%s'.",
+                    minWordCount, expectedWord);
+        } else if (!containsExpected) {
+            errorMessage = String.format(
+                    "Make sure to include the word '%s' in your composition.", expectedWord);
+        } else {
+            errorMessage = String.format(
+                    "Your composition needs at least %d word(s).", minWordCount);
+        }
 
         if (isLastAttempt) {
             return EvaluationResult.builder()
                     .correct(false)
                     .score(0)
-                    .feedbackMessage("The correct answer is:")
+                    .feedbackMessage(errorMessage)
                     .correctAnswer(expectedWord)
                     .alternatives(alternatives)
                     .explanation(buildExplanation(data))
-                    .normalizedUserAnswer(normalizedUserAnswer)
-                    .partialMatch(isCloseMatch)
+                    .normalizedUserAnswer(compositionText)
                     .build();
         }
 
         // More attempts remaining
         String hint = buildHint(data, attemptNumber, normalizedExpected);
-        String message = isCloseMatch
-                ? "Almost! Check your spelling."
-                : "Not quite. Try again!";
 
         return EvaluationResult.builder()
                 .correct(false)
                 .score(0)
-                .feedbackMessage(message)
+                .feedbackMessage(errorMessage)
                 .hint(hint)
-                .normalizedUserAnswer(normalizedUserAnswer)
-                .partialMatch(isCloseMatch)
+                .normalizedUserAnswer(compositionText)
                 .build();
     }
 
@@ -119,33 +139,4 @@ public class AssistedCompositionEvaluator implements ExerciseEvaluationStrategy 
         return sb.toString();
     }
 
-    private boolean isCloseMatch(String userAnswer, String correctAnswer) {
-        if (userAnswer == null || correctAnswer == null)
-            return false;
-        if (Math.abs(userAnswer.length() - correctAnswer.length()) > 2)
-            return false;
-
-        int distance = levenshteinDistance(userAnswer, correctAnswer);
-        return distance > 0 && distance <= 2;
-    }
-
-    private int levenshteinDistance(String s1, String s2) {
-        int[][] dp = new int[s1.length() + 1][s2.length() + 1];
-
-        for (int i = 0; i <= s1.length(); i++) {
-            for (int j = 0; j <= s2.length(); j++) {
-                if (i == 0) {
-                    dp[i][j] = j;
-                } else if (j == 0) {
-                    dp[i][j] = i;
-                } else {
-                    int cost = s1.charAt(i - 1) == s2.charAt(j - 1) ? 0 : 1;
-                    dp[i][j] = Math.min(
-                            Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1),
-                            dp[i - 1][j - 1] + cost);
-                }
-            }
-        }
-        return dp[s1.length()][s2.length()];
-    }
 }

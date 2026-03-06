@@ -47,6 +47,7 @@ public class LessonSessionController {
         })
         public ResponseEntity<BaseResponse<UserLessonSessionDetailResponse>> startOrResumeSession(
                         @Valid @RequestBody UserLessonSessionStartRequest request) {
+                request.setUserId(SecurityUtil.getCurrentUserId());
                 UserLessonSessionDetailResponse result = sessionService.startOrResumeSession(request);
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }
@@ -70,7 +71,7 @@ public class LessonSessionController {
                         @ApiResponse(responseCode = "404", description = "Session not found")
         })
         public ResponseEntity<BaseResponse<UserLessonSessionDetailResponse>> getSessionDetail(
-                        @Parameter(description = "Session ID") @PathVariable UUID sessionId) {
+                        @PathVariable("sessionId") UUID sessionId) {
                 UserLessonSessionDetailResponse result = sessionService.getSessionDetail(sessionId);
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }
@@ -117,7 +118,7 @@ public class LessonSessionController {
                         @ApiResponse(responseCode = "404", description = "Session not found")
         })
         public ResponseEntity<BaseResponse<UserLessonSessionResponse>> completeSession(
-                        @Parameter(description = "Session ID") @PathVariable UUID sessionId) {
+                        @Parameter(description = "Session ID") @PathVariable("sessionId") UUID sessionId) {
                 UserLessonSessionResponse result = sessionService.completeSession(sessionId);
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }

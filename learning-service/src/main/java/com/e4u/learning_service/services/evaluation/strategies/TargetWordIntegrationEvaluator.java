@@ -3,6 +3,7 @@ package com.e4u.learning_service.services.evaluation.strategies;
 import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.TargetWordIntegrationExerciseData;
+import com.e4u.learning_service.entities.pojos.answers.TargetWordIntegrationAnswer;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationStrategy;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,12 @@ public class TargetWordIntegrationEvaluator implements ExerciseEvaluationStrateg
     public EvaluationResult evaluate(ExerciseData exerciseData, Object userAnswer, int attemptNumber, int maxAttempts) {
         TargetWordIntegrationExerciseData data = (TargetWordIntegrationExerciseData) exerciseData;
 
-        String userSentence = userAnswer != null ? userAnswer.toString().trim() : "";
+        String userSentence;
+        if (userAnswer instanceof TargetWordIntegrationAnswer answer) {
+            userSentence = answer.getSentence() != null ? answer.getSentence().trim() : "";
+        } else {
+            userSentence = userAnswer != null ? userAnswer.toString().trim() : "";
+        }
         String targetWord = data.getTargetWord();
         Integer minWords = data.getMinWords() != null ? data.getMinWords() : 3;
         Integer maxWords = data.getMaxWords() != null ? data.getMaxWords() : 20;

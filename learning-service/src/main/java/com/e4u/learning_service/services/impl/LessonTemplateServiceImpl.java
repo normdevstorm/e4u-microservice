@@ -9,6 +9,7 @@ import com.e4u.learning_service.dtos.response.UserLessonSessionResponse;
 import com.e4u.learning_service.entities.CurriculumUnit;
 import com.e4u.learning_service.entities.LessonTemplate;
 import com.e4u.learning_service.entities.UserLessonSession;
+import com.e4u.learning_service.entities.UserLessonSession.SessionStatus;
 import com.e4u.learning_service.mapper.LessonTemplateMapper;
 import com.e4u.learning_service.mapper.UserLessonSessionMapper;
 import com.e4u.learning_service.repositories.CurriculumUnitRepository;
@@ -146,9 +147,16 @@ public class LessonTemplateServiceImpl implements LessonTemplateService {
                 .collect(Collectors.toMap(
                         UserLessonSessionResponse::getLessonTemplateId,
                         Function.identity(),
-                        // If multiple sessions exist for same lesson, keep the most recent (by
-                        // updatedAt)
+                        // Status priority: COMPLETED always wins (once completed, always completed).
+                        // For two non-completed sessions, keep the most recent by updatedAt.
                         (existing, replacement) -> {
+                            boolean existingCompleted = existing.getStatus() == SessionStatus.COMPLETED;
+                            boolean replacementCompleted = replacement.getStatus() == SessionStatus.COMPLETED;
+                            if (existingCompleted)
+                                return existing;
+                            if (replacementCompleted)
+                                return replacement;
+                            // Both non-completed: keep the more recently updated one
                             if (replacement.getUpdatedAt() != null && existing.getUpdatedAt() != null
                                     && replacement.getUpdatedAt().isAfter(existing.getUpdatedAt())) {
                                 return replacement;

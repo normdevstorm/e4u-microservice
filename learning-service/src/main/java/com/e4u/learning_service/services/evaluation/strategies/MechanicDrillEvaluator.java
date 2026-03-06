@@ -3,6 +3,7 @@ package com.e4u.learning_service.services.evaluation.strategies;
 import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
 import com.e4u.learning_service.entities.pojos.MechanicDrillExerciseData;
+import com.e4u.learning_service.entities.pojos.answers.MechanicDrillAnswer;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationStrategy;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,12 @@ public class MechanicDrillEvaluator implements ExerciseEvaluationStrategy {
     public EvaluationResult evaluate(ExerciseData exerciseData, Object userAnswer, int attemptNumber, int maxAttempts) {
         MechanicDrillExerciseData data = (MechanicDrillExerciseData) exerciseData;
 
-        String userAnswerStr = userAnswer != null ? userAnswer.toString() : "";
+        String userAnswerStr;
+        if (userAnswer instanceof MechanicDrillAnswer answer) {
+            userAnswerStr = answer.getSelectedWord();
+        } else {
+            userAnswerStr = userAnswer != null ? userAnswer.toString() : "";
+        }
         String normalizedUserAnswer = normalizeAnswer(userAnswerStr);
         String correctAnswer = data.getCorrectAnswer();
         String normalizedCorrect = normalizeAnswer(correctAnswer);

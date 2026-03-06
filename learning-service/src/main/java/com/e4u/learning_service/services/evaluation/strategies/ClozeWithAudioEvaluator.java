@@ -3,6 +3,7 @@ package com.e4u.learning_service.services.evaluation.strategies;
 import com.e4u.learning_service.entities.ExerciseTemplate;
 import com.e4u.learning_service.entities.pojos.ClozeWithAudioExerciseData;
 import com.e4u.learning_service.entities.pojos.ExerciseData;
+import com.e4u.learning_service.entities.pojos.answers.ClozeWithAudioAnswer;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationStrategy;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,12 @@ public class ClozeWithAudioEvaluator implements ExerciseEvaluationStrategy {
     public EvaluationResult evaluate(ExerciseData exerciseData, Object userAnswer, int attemptNumber, int maxAttempts) {
         ClozeWithAudioExerciseData data = (ClozeWithAudioExerciseData) exerciseData;
 
-        String userAnswerStr = userAnswer != null ? userAnswer.toString() : "";
+        String userAnswerStr;
+        if (userAnswer instanceof ClozeWithAudioAnswer answer) {
+            userAnswerStr = answer.getUserAnswer();
+        } else {
+            userAnswerStr = userAnswer != null ? userAnswer.toString() : "";
+        }
         String normalizedUserAnswer = normalizeAnswer(userAnswerStr);
         String correctAnswer = data.getCorrectAnswer();
         String normalizedCorrect = normalizeAnswer(correctAnswer);
