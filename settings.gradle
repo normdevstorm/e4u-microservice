@@ -20,4 +20,5 @@ include 'statisticservice'
 include 'monitoradmin'
 include 'paymentservice'
 include 'learning-service'
+include 'ai-filter-service'
 // Merged: lesson-service and curriculum-service are now combined into learning-service

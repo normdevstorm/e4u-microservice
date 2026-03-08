@@ -1,0 +1,96 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.e4u'
+version = '0.0.1-SNAPSHOT'
+description = 'AI Service for word filtration'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+ext {
+	set('springCloudVersion', "2023.0.4")
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+dependencies {
+	// Spring Cloud Config Client
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+	// Spring Boot Core
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Spring Batch
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+	// Database
+	implementation 'org.liquibase:liquibase-core'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// API Docs
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
+	// Utilities
+	implementation 'org.mapstruct:mapstruct:1.6.3'
+	implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+	// Dev
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// Test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.batch:spring-batch-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Build configurations for different profiles
+def profiles = ['dev', 'docker']
+
+profiles.each { profile ->
+	tasks.register("bootRun${profile.capitalize()}", org.springframework.boot.gradle.tasks.run.BootRun) {
+		group = 'application'
+		description = "Run the application with ${profile} profile"
+		classpath = sourceSets.main.runtimeClasspath
+		mainClass = project.hasProperty('mainClass') ? project.mainClass : 'com.e4u.ai_filter_service.AiFilterServiceApplication'
+		args = ["--spring.profiles.active=${profile}"]
+	}
+}
+
+// Default bootRun uses dev profile
+tasks.named('bootRun') {
+	args = ['--spring.profiles.active=dev']
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

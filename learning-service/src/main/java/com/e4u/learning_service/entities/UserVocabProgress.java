@@ -9,7 +9,8 @@ import java.util.UUID;
 /**
  * Entity tracking user's vocabulary learning progress.
  * Implements Spaced Repetition System (SRS) algorithm fields.
- * Replaces the old UserVocabInstance entity with cleaner separation of concerns.
+ * Replaces the old UserVocabInstance entity with cleaner separation of
+ * concerns.
  */
 @Entity
 @Getter
@@ -18,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "user_vocab_progress", uniqueConstraints = {
-    @UniqueConstraint(name = "unique_user_word_progress", columnNames = {"user_id", "word_id"})
+        @UniqueConstraint(name = "unique_user_word_progress", columnNames = { "user_id", "word_id" })
 })
 public class UserVocabProgress extends BaseEntity {
 
@@ -91,10 +92,10 @@ public class UserVocabProgress extends BaseEntity {
      */
     public void recordCorrectAnswer() {
         this.consecutiveCorrectAnswers++;
-        
+
         // Increase ease factor slightly for correct answers
         this.easeFactor = Math.min(2.5f, this.easeFactor + 0.1f);
-        
+
         // Calculate next interval
         if (this.consecutiveCorrectAnswers == 1) {
             this.intervalDays = 1;
@@ -103,10 +104,10 @@ public class UserVocabProgress extends BaseEntity {
         } else {
             this.intervalDays = Math.round(this.intervalDays * this.easeFactor);
         }
-        
+
         // Set next review date
         this.nextReviewAt = LocalDateTime.now().plusDays(this.intervalDays);
-        
+
         // Mark as mastered if interval exceeds 21 days
         if (this.intervalDays >= 21) {
             this.isMastered = true;
@@ -118,16 +119,16 @@ public class UserVocabProgress extends BaseEntity {
      */
     public void recordIncorrectAnswer() {
         this.consecutiveCorrectAnswers = 0;
-        
+
         // Decrease ease factor for incorrect answers
         this.easeFactor = Math.max(1.3f, this.easeFactor - 0.2f);
-        
+
         // Reset interval
         this.intervalDays = 0;
-        
+
         // Review again soon (in 10 minutes effectively, but we use 0 days)
         this.nextReviewAt = LocalDateTime.now();
-        
+
         // No longer mastered
         this.isMastered = false;
     }

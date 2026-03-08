@@ -1,0 +1,169 @@
+# ===========================================
+# Common settings for all environments
+# ===========================================
+server:
+  port: 8086
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  batch:
+    job:
+      enabled: false          # Disable auto-run on startup — scheduler controls launch
+    jdbc:
+      initialize-schema: always   # Let Spring Batch auto-create metadata tables in e4u_ai_filter
+
+# Batch job properties
+batch:
+  chunk-size: 50
+  scheduler:
+    cron: "0 0 2 * * ?"     # 2AM daily
+    enabled: true
+
+# AI API properties
+ai:
+  api:
+    url: ${AI_API_URL:http://localhost:8090}
+    key: ${AI_API_KEY:}
+    model: ${AI_MODEL:gpt-4o-mini}
+    timeout-seconds: 30
+    batch-size: 20            # Words per single AI request
+
+# Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:9999/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,batch
+  endpoint:
+    health:
+      show-details: always
+
+# OpenAPI / Swagger
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+
+# Logging
+logging:
+  level:
+    root: info
+    org.springframework.batch: info
+    com.e4u.ai_filter_service: info
+
+---
+# ===========================================
+# Development profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # Primary DataSource → e4u_ai_filter (service's own DB)
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/e4u_ai_filter
+    username: ${DB_USERNAME:nam}
+    password: ${DB_PASSWORD:nam123}
+
+  # Secondary DataSource → e4u_learning (shared, read-only)
+  learning-datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/e4u_learning
+    username: ${DB_USERNAME:nam}
+    password: ${DB_PASSWORD:nam123}
+
+  liquibase:
+    contexts: dev
+
+logging:
+  level:
+    org.springframework.batch: debug
+    com.e4u.ai_filter_service: debug
+
+---
+# ===========================================
+# Docker profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/e4u_ai_filter
+    username: ${DB_USERNAME:nam}
+    password: ${DB_PASSWORD:nam123}
+
+  learning-datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/e4u_learning
+    username: ${DB_USERNAME:nam}
+    password: ${DB_PASSWORD:nam123}
+
+  liquibase:
+    contexts: docker
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:9999/eureka
+
+---
+# ===========================================
+# Production profile
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/e4u_ai_filter
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  learning-datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/e4u_learning
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    show-sql: false
+
+  liquibase:
+    contexts: prod
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
+
+logging:
+  level:
+    root: warn
+    com.e4u.ai_filter_service: info

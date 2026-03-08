@@ -42,4 +42,7 @@ databaseChangeLog:
   - include:
       file: v1/db.changelog-006-exercise-templates-bulk.sql
       relativeToChangelogFile: true
+  - include:
+      file: v1/db.changelog-009-add-ai-scan-flag-column.sql
+      relativeToChangelogFile: true
 

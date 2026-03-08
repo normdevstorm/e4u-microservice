@@ -28,6 +28,9 @@ public interface GlobalDictionaryRepository
         // Find by lemma (exact match)
         Optional<GlobalDictionary> findByLemmaAndDeletedFalse(String lemma);
 
+        // Find by lemma and part of speech (exact match for extension save)
+        Optional<GlobalDictionary> findByLemmaAndPartOfSpeechAndDeletedFalse(String lemma, String partOfSpeech);
+
         // Find by lemma (case insensitive)
         @Query("SELECT g FROM GlobalDictionary g WHERE LOWER(g.lemma) = LOWER(:lemma) AND g.deleted = false")
         Optional<GlobalDictionary> findByLemmaIgnoreCaseAndDeletedFalse(@Param("lemma") String lemma);

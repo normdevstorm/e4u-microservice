@@ -61,11 +61,19 @@ public class WordContextTemplate extends BaseEntity {
     private SourceType sourceType = SourceType.SYSTEM;
 
     /**
+     * ------------ User-specific context fields ------------
+     */
+
+    /**
      * If NULL: This is a system/shared context available to all users.
      * If has value: This is a custom context created for a specific user.
      */
     @Column(name = "created_for_user_id")
     private UUID createdForUserId;
+
+    @Column(name = "is_selected_by_ai")
+    @Builder.Default
+    private Boolean isSelectedByAi = false;
 
     public enum SourceType {
         SYSTEM, // Created by system/admin

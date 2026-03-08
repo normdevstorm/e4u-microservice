@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_USER: nam
       POSTGRES_PASSWORD: nam123
-      POSTGRES_MULTIPLE_DATABASES: e4u_auth,e4u_account,e4u_item,e4u_statistic,e4u_payment,e4u_learning
+      POSTGRES_MULTIPLE_DATABASES: e4u_auth,e4u_account,e4u_item,e4u_statistic,e4u_payment,e4u_learning,e4u_ai_filter
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
@@ -270,6 +270,35 @@ services:
         condition: service_healthy
     networks:
       - e4u-network
+
+  # AI Filter Service - Scheduled batch word filtration
+  ai-filter-service:
+    build:
+      context: .
+      dockerfile: ai-filter-service/Dockerfile
+    container_name: e4u-ai-filter-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_URL=http://config-service:8888
+      - AI_API_KEY=${AI_API_KEY:-}
+      - AI_API_URL=${AI_API_URL:-https://api.openai.com}
+      - AI_MODEL=${AI_MODEL:-gpt-4o-mini}
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - e4u-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # ===========================================
   # MONITORING & ADMIN
