@@ -60,3 +60,13 @@ databaseChangeLog:
 #   - include:
 #       file: v1/db.changelog-012-baseline-questions.sql
 #       relativeToChangelogFile: true
+
+  # Step 11: Create user_stats_cache table for leaderboard feature
+  - include:
+      file: v1/db.changelog-013-stats-cache.sql
+      relativeToChangelogFile: true
+
+  # Step 12: Create user_stats_snapshots table for admin historical stats
+  - include:
+      file: v1/db.changelog-014-stats-snapshots.sql
+      relativeToChangelogFile: true

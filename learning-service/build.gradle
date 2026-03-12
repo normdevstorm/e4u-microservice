@@ -116,7 +116,9 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-// Configure encoding
+// Configure encoding and parameter name preservation
+// -parameters is required by Spring 6 for @RequestParam name inference at runtime
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
+	options.compilerArgs << '-parameters'
 }
