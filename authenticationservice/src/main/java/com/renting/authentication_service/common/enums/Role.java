@@ -13,25 +13,81 @@ import java.util.Set;
 @RequiredArgsConstructor
 public enum Role {
 
-    USER(
-            Set.of(Permission.USER_READ, Permission.USER_CREATE, Permission.USER_UPDATE)
-    ),
-    ADMIN(
-            Set.of(Permission.USER_READ, Permission.USER_CREATE, Permission.USER_UPDATE, Permission.USER_DELETE, Permission.ADMIN_READ, Permission.ADMIN_CREATE, Permission.ADMIN_UPDATE, Permission.ADMIN_DELETE, Permission.ITEM_READ, Permission.ITEM_CREATE, Permission.ITEM_UPDATE, Permission.ITEM_DELETE)
-    ),
-    OWNER(Set.of(Permission.ITEM_CREATE, Permission.ITEM_READ, Permission.ITEM_UPDATE, Permission.ITEM_DELETE)),
-    RENTER(Set.of(Permission.ITEM_READ));
+        @JsonEnumDefaultValue
+        LEARNER(Set.of(
+                        Permission.PROFILE_READ,
+                        Permission.PROFILE_UPDATE,
+                        Permission.CURRICULUM_READ,
+                        Permission.LESSON_READ,
+                        Permission.VOCAB_READ,
+                        Permission.PROGRESS_READ,
+                        Permission.PROGRESS_WRITE,
+                        Permission.STATS_READ,
+                        Permission.PAYMENT_READ,
+                        Permission.PAYMENT_CREATE)),
 
-    @JsonEnumDefaultValue
-    public static Role DEFAULT = USER;
+        TEACHER(Set.of(// Inherits all LEARNER permissions
+                        Permission.PROFILE_READ,
+                        Permission.PROFILE_UPDATE,
+                        Permission.CURRICULUM_READ,
+                        Permission.CURRICULUM_CREATE,
+                        Permission.CURRICULUM_UPDATE,
+                        Permission.CURRICULUM_DELETE,
+                        Permission.LESSON_READ,
+                        Permission.LESSON_CREATE,
+                        Permission.LESSON_UPDATE,
+                        Permission.LESSON_DELETE,
+                        Permission.VOCAB_READ,
+                        Permission.VOCAB_CREATE,
+                        Permission.VOCAB_UPDATE,
+                        Permission.VOCAB_DELETE,
+                        Permission.PROGRESS_READ,
+                        Permission.PROGRESS_WRITE,
+                        Permission.STATS_READ,
+                        Permission.STATS_WRITE,
+                        Permission.PAYMENT_READ,
+                        Permission.PAYMENT_CREATE)),
 
-    private final Set<Permission> authorities;
+        ADMIN(Set.of(
+                        Permission.PROFILE_READ,
+                        Permission.PROFILE_UPDATE,
+                        Permission.CURRICULUM_READ,
+                        Permission.CURRICULUM_CREATE,
+                        Permission.CURRICULUM_UPDATE,
+                        Permission.CURRICULUM_DELETE,
+                        Permission.LESSON_READ,
+                        Permission.LESSON_CREATE,
+                        Permission.LESSON_UPDATE,
+                        Permission.LESSON_DELETE,
+                        Permission.VOCAB_READ,
+                        Permission.VOCAB_CREATE,
+                        Permission.VOCAB_UPDATE,
+                        Permission.VOCAB_DELETE,
+                        Permission.PROGRESS_READ,
+                        Permission.PROGRESS_WRITE,
+                        Permission.STATS_READ,
+                        Permission.STATS_WRITE,
+                        Permission.PAYMENT_READ,
+                        Permission.PAYMENT_CREATE,
+                        Permission.USER_READ,
+                        Permission.USER_CREATE,
+                        Permission.USER_UPDATE,
+                        Permission.USER_DELETE,
+                        Permission.ADMIN_READ,
+                        Permission.ADMIN_CREATE,
+                        Permission.ADMIN_UPDATE,
+                        Permission.ADMIN_DELETE));
 
-    public List<SimpleGrantedAuthority> getAuthorities() {
-        ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>(this.authorities.stream()
-                .map(permission -> new SimpleGrantedAuthority(permission.getPermission()))
-                .toList());
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
-        return authorities;
-    }
+        /** Programmatic default — also the @JsonEnumDefaultValue constant above */
+        public static final Role DEFAULT = LEARNER;
+
+        private final Set<Permission> authorities;
+
+        public List<SimpleGrantedAuthority> getAuthorities() {
+                ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>(this.authorities.stream()
+                                .map(permission -> new SimpleGrantedAuthority(permission.getPermission()))
+                                .toList());
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
+                return authorities;
+        }
 }

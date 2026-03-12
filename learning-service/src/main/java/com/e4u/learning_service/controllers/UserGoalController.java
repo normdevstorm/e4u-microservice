@@ -91,6 +91,9 @@ public class UserGoalController {
         })
         public ResponseEntity<BaseResponse<UserGoalResponse>> addGoalForUser(
                         @Valid @RequestBody UserGoalCreateRequest request) {
+                if (request.getUserId() == null) {
+                        request.setUserId(SecurityUtil.getCurrentUserId());
+                }
                 UserGoalResponse result = service.addGoalForUser(request);
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(BaseResponse.ok(result, "Goal added for user successfully"));

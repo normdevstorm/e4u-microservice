@@ -46,3 +46,17 @@ databaseChangeLog:
       file: v1/db.changelog-009-add-ai-scan-flag-column.sql
       relativeToChangelogFile: true
 
+  # Step 8: Create user_profiles table for onboarding module
+  - include:
+      file: v1/db.changelog-010-user-profiles.sql
+      relativeToChangelogFile: true
+
+#   # Step 9: Onboarding reference data (occupations, interests)
+#   - include:
+#       file: v1/db.changelog-011-onboarding-reference-data.sql
+#       relativeToChangelogFile: true
+
+#   # Step 10: Baseline questions for English proficiency placement (F-02)
+#   - include:
+#       file: v1/db.changelog-012-baseline-questions.sql
+#       relativeToChangelogFile: true

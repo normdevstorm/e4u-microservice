@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserGoalCreateRequest {
 
-    @NotNull(message = "User ID is required")
+    // @NotNull(message = "User ID is required")
     private UUID userId;
 
     @NotNull(message = "Goal ID is required")

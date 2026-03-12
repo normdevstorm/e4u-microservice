@@ -36,9 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public JwtAuthenticationFilter(
             JwtService jwtService,
             UserRepository userRepository,
-            HandlerExceptionResolver handlerExceptionResolver,
-            GlobalExceptionHandler globalExceptionHandler
-    ) {
+            @org.springframework.beans.factory.annotation.Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver,
+            GlobalExceptionHandler globalExceptionHandler) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.handlerExceptionResolver = handlerExceptionResolver;
@@ -51,14 +50,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         return path.matches(ConstantManager.SHOULD_NOT_FILTER_JWT_PATHS_REGEX);
 
-
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = extractToken(request, response, filterChain);
         try {
-            if (authHeader == null) throw new CustomJwtException("Missing JWT Token");
+            if (authHeader == null)
+                throw new CustomJwtException("Missing JWT Token");
             final String jwt = authHeader.substring(7);
 
             final String username = jwtService.extractUsername(jwt, false);
@@ -71,8 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             user,
                             null,
-                            user.getAuthorities()
-                    );
+                            user.getAuthorities());
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -84,18 +83,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
-        } catch
-        (MalformedJwtException exception) {
+        } catch (MalformedJwtException exception) {
             logger.error(exception.getMessage());
             globalExceptionHandler.malformedJwtExceptionHandler(exception);
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             handlerExceptionResolver.resolveException(request, response, null, exception);
         }
     }
 
     @Nullable
-    private static String extractToken(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+    private static String extractToken(HttpServletRequest request, HttpServletResponse response,
+            FilterChain filterChain) throws IOException, ServletException {
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);

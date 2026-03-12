@@ -30,6 +30,9 @@ public interface CurriculumRepository extends JpaRepository<Curriculum, UUID>, J
     // Find by goal ID
     List<Curriculum> findByGoalDefinition_IdAndDeletedFalse(UUID goalId);
 
+    // Find by multiple goal IDs (used for user-specific curriculum fetch)
+    List<Curriculum> findByGoalDefinition_IdInAndDeletedFalse(List<UUID> goalIds);
+
     // Find by name
     Optional<Curriculum> findByCurriculumNameAndDeletedFalse(String curriculumName);
 

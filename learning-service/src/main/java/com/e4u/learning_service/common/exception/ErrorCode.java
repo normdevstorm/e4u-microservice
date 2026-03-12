@@ -56,6 +56,11 @@ public enum ErrorCode {
     DATA_INTEGRITY_VIOLATION("ERR_6000", "Data integrity violation", HttpStatus.CONFLICT),
     OPTIMISTIC_LOCK_FAILURE("ERR_6001", "Resource was modified by another user", HttpStatus.CONFLICT),
 
+    // Profile errors (8xxx)
+    USER_PROFILE_NOT_FOUND("ERR_8000", "User profile not found", HttpStatus.NOT_FOUND),
+    USER_PROFILE_ALREADY_EXISTS("ERR_8001", "User profile already exists", HttpStatus.CONFLICT),
+    GOAL_LIMIT_EXCEEDED("ERR_8002", "Maximum of 3 goals allowed per user", HttpStatus.UNPROCESSABLE_ENTITY),
+
     // External service errors (7xxx)
     EXTERNAL_SERVICE_ERROR("ERR_7000", "External service error", HttpStatus.SERVICE_UNAVAILABLE),
     ACCOUNT_SERVICE_ERROR("ERR_7001", "Account service error", HttpStatus.SERVICE_UNAVAILABLE);

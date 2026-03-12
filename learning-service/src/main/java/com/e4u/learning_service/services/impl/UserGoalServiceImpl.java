@@ -122,6 +122,15 @@ public class UserGoalServiceImpl implements UserGoalService {
 
         // TODO: Validate user exists via user-service when implemented
 
+        // Enforce max-3 goals constraint
+        int currentCount = repository.findByUserIdAndDeletedFalse(userId).size();
+        int incoming = goalIds.size();
+        if (currentCount + incoming > 3) {
+            throw new AppException(ErrorCode.GOAL_LIMIT_EXCEEDED,
+                    "User already has " + currentCount + " goal(s). Cannot add " + incoming +
+                            " more — maximum is 3.");
+        }
+
         List<UserGoalResponse> responses = new ArrayList<>();
         for (UUID goalId : goalIds) {
             if (!repository.existsByUserIdAndGoalDefinitionIdAndDeletedFalse(userId, goalId)) {

@@ -7,28 +7,51 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Permission {
 
+    // ── Own-account operations ──────────────────────────────────────────────
+    PROFILE_READ("profile:read"),
+    PROFILE_UPDATE("profile:update"),
+
+    // ── Curriculum (CurriculumUnit) ─────────────────────────────────────────
+    CURRICULUM_READ("curriculum:read"),
+    CURRICULUM_CREATE("curriculum:create"),
+    CURRICULUM_UPDATE("curriculum:update"),
+    CURRICULUM_DELETE("curriculum:delete"),
+
+    // ── Lesson (LessonTemplate / ExerciseTemplate) ──────────────────────────
+    LESSON_READ("lesson:read"),
+    LESSON_CREATE("lesson:create"),
+    LESSON_UPDATE("lesson:update"),
+    LESSON_DELETE("lesson:delete"),
+
+    // ── Vocabulary (GlobalDictionary / VocabAsset / WordContextTemplate) ────
+    VOCAB_READ("vocab:read"),
+    VOCAB_CREATE("vocab:create"),
+    VOCAB_UPDATE("vocab:update"),
+    VOCAB_DELETE("vocab:delete"),
+
+    // ── Progress (UserLessonSession / UserExerciseAttempt / UserVocabProgress)
+    PROGRESS_READ("progress:read"),
+    PROGRESS_WRITE("progress:write"),
+
+    // ── Statistics ──────────────────────────────────────────────────────────
+    STATS_READ("stats:read"),
+    STATS_WRITE("stats:write"),
+
+    // ── Payment ─────────────────────────────────────────────────────────────
+    PAYMENT_READ("payment:read"),
+    PAYMENT_CREATE("payment:create"),
+
+    // ── Admin-level user management ─────────────────────────────────────────
     USER_READ("user:read"),
     USER_CREATE("user:create"),
-    USER_DELETE("user:delete"),
     USER_UPDATE("user:update"),
+    USER_DELETE("user:delete"),
 
+    // ── Admin operations ────────────────────────────────────────────────────
     ADMIN_READ("admin:read"),
     ADMIN_CREATE("admin:create"),
-    ADMIN_DELETE("admin:delete"),
     ADMIN_UPDATE("admin:update"),
-
-    ITEM_READ("item:read"),
-    ITEM_CREATE("item:create"),
-    ITEM_DELETE("item:delete"),
-    ITEM_UPDATE("item:update"),
-
-    TRANSACTION_READ("transaction:read"),
-    TRANSACTION_CREATE("transaction:create"),
-    TRANSACTION_DELETE("transaction:delete"),
-    TRANSACTION_UPDATE("transaction:update");
+    ADMIN_DELETE("admin:delete");
 
     private final String permission;
-
-
-
 }

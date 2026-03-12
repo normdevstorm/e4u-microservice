@@ -26,6 +26,9 @@ public interface CurriculumService {
 
     List<CurriculumResponse> getByGoalId(UUID goalId);
 
+    /** Retrieve all curricula that match the goals of the authenticated user */
+    List<CurriculumResponse> getByUser(UUID userId);
+
     CurriculumResponse create(CurriculumCreateRequest request);
 
     List<CurriculumResponse> createBatch(List<CurriculumCreateRequest> requests);

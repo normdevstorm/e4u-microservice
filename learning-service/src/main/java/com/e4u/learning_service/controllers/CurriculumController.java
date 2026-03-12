@@ -1,5 +1,6 @@
 package com.e4u.learning_service.controllers;
 
+import com.e4u.learning_service.common.utils.SecurityUtil;
 import com.e4u.learning_service.dtos.request.CurriculumCreateRequest;
 import com.e4u.learning_service.dtos.request.CurriculumFilterRequest;
 import com.e4u.learning_service.dtos.request.CurriculumUpdateRequest;
@@ -80,6 +81,17 @@ public class CurriculumController {
         public ResponseEntity<BaseResponse<List<CurriculumResponse>>> getByGoalId(
                         @Parameter(description = "Goal ID") @PathVariable("goalId") UUID goalId) {
                 List<CurriculumResponse> result = service.getByGoalId(goalId);
+                return ResponseEntity.ok(BaseResponse.ok(result));
+        }
+
+        @GetMapping("/user")
+        @Operation(summary = "Get curricula for current user", description = "Retrieve all curricula matching the authenticated user's learning goals")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Successfully retrieved user's curricula")
+        })
+        public ResponseEntity<BaseResponse<List<CurriculumResponse>>> getByUser() {
+                UUID userId = SecurityUtil.getCurrentUserId();
+                List<CurriculumResponse> result = service.getByUser(userId);
                 return ResponseEntity.ok(BaseResponse.ok(result));
         }
 

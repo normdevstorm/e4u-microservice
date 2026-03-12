@@ -12,6 +12,7 @@ import com.e4u.learning_service.entities.GoalDefinition;
 import com.e4u.learning_service.mapper.CurriculumMapper;
 import com.e4u.learning_service.repositories.CurriculumRepository;
 import com.e4u.learning_service.repositories.GoalDefinitionRepository;
+import com.e4u.learning_service.repositories.UserGoalRepository;
 import com.e4u.learning_service.repositories.specification.CurriculumSpecification;
 import com.e4u.learning_service.services.CurriculumService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class CurriculumServiceImpl implements CurriculumService {
 
     private final CurriculumRepository repository;
     private final GoalDefinitionRepository goalDefinitionRepository;
+    private final UserGoalRepository userGoalRepository;
     private final CurriculumMapper mapper;
 
     @Override
@@ -82,6 +84,26 @@ public class CurriculumServiceImpl implements CurriculumService {
     public List<CurriculumResponse> getByGoalId(UUID goalId) {
         log.debug("Fetching curricula by goal id: {}", goalId);
         return repository.findByGoalDefinition_IdAndDeletedFalse(goalId)
+                .stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CurriculumResponse> getByUser(UUID userId) {
+        log.debug("Fetching curricula for user: {}", userId);
+        // Fetch the user's active goal IDs
+        List<UUID> goalIds = userGoalRepository.findByUserIdAndDeletedFalse(userId)
+                .stream()
+                .map(ug -> ug.getGoalDefinition().getId())
+                .distinct()
+                .collect(Collectors.toList());
+        log.debug("User {} has {} goals: {}", userId, goalIds.size(), goalIds);
+        if (goalIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findByGoalDefinition_IdInAndDeletedFalse(goalIds)
                 .stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());

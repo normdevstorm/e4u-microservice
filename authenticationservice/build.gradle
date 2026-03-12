@@ -30,7 +30,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
     
     // Validation
-    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     
     // MapStruct
     implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -49,6 +49,7 @@ dependencies {
     
     // Database
     runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.liquibase:liquibase-core'
     
     // DevTools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
