@@ -10,6 +10,7 @@ import com.e4u.learning_service.repositories.ExerciseTemplateRepository;
 import com.e4u.learning_service.repositories.UserExerciseAttemptRepository;
 import com.e4u.learning_service.repositories.UserLessonSessionRepository;
 import com.e4u.learning_service.services.UserExerciseAttemptService;
+import com.e4u.learning_service.services.UserUnitStateSyncService;
 import com.e4u.learning_service.services.UserVocabProgressService;
 import com.e4u.learning_service.services.evaluation.EvaluationResult;
 import com.e4u.learning_service.services.evaluation.ExerciseEvaluationService;
@@ -38,6 +39,7 @@ public class UserExerciseAttemptServiceImpl implements UserExerciseAttemptServic
     private final UserExerciseAttemptMapper attemptMapper;
     private final UserVocabProgressService vocabProgressService;
     private final ExerciseEvaluationService evaluationService;
+    private final UserUnitStateSyncService userUnitStateSyncService;
 
     @Override
     @Transactional
@@ -78,6 +80,10 @@ public class UserExerciseAttemptServiceImpl implements UserExerciseAttemptServic
         // Update session progress based on correctness
         session.recordExerciseCompletion(Boolean.TRUE.equals(attempt.getIsCorrect()));
         sessionRepository.save(session);
+
+        if (session.getUserUnitState() != null) {
+            userUnitStateSyncService.syncFromSessions(session.getUserUnitState().getId());
+        }
 
         // Update vocab progress if the exercise targets a word via WordContextTemplate
         if (exerciseTemplate.getWordContextTemplate() != null

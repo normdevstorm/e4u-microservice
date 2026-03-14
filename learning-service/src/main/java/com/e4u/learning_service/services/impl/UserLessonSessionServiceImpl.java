@@ -16,6 +16,7 @@ import com.e4u.learning_service.repositories.LessonTemplateRepository;
 import com.e4u.learning_service.repositories.UserLessonSessionRepository;
 import com.e4u.learning_service.repositories.UserUnitStateRepository;
 import com.e4u.learning_service.services.UserLessonSessionService;
+import com.e4u.learning_service.services.UserUnitStateSyncService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
     private final ExerciseTemplateRepository exerciseTemplateRepository;
     private final UserLessonSessionMapper sessionMapper;
     private final ExerciseTemplateMapper exerciseTemplateMapper;
+    private final UserUnitStateSyncService userUnitStateSyncService;
 
     @Override
     @Transactional
@@ -200,10 +202,9 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
         session.complete();
         session = sessionRepository.save(session);
 
-        // TODO: Update UserUnitState progress if linked
         if (session.getUserUnitState() != null) {
             log.info("Updating unit state progress for session: {}", sessionId);
-            // Trigger unit state recalculation
+            userUnitStateSyncService.syncFromSessions(session.getUserUnitState().getId());
         }
 
         log.info("Session completed: {} with accuracy: {}", sessionId, session.getAccuracyRate());
@@ -227,6 +228,11 @@ public class UserLessonSessionServiceImpl implements UserLessonSessionService {
         }
 
         session = sessionRepository.save(session);
+
+        if (session.getUserUnitState() != null) {
+            userUnitStateSyncService.syncFromSessions(session.getUserUnitState().getId());
+        }
+
         return sessionMapper.toResponse(session);
     }
 

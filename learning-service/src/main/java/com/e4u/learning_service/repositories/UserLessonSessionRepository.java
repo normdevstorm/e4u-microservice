@@ -189,7 +189,7 @@ public interface UserLessonSessionRepository extends JpaRepository<UserLessonSes
                      "  GROUP BY CAST(uvp.created_at AT TIME ZONE 'UTC' AS DATE) " +
                      ") dv ON dv.vp_date = CAST(s.created_at AT TIME ZONE 'UTC' AS DATE) " +
                      "WHERE s.user_id = :userId " +
-                     "  AND s.status = 'COMPLETED' " +
+                     // " AND s.status = 'COMPLETED' " +
                      "  AND s.deleted = false " +
                      "  AND s.created_at >= :from AND s.created_at < :to " +
                      "GROUP BY CAST(s.created_at AT TIME ZONE 'UTC' AS DATE) " +
